@@ -1,2 +1,5 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿//sumaray
+// This is just a test
+
+string name = "John Doe";
+Console.WriteLine("Hello, " + name + "!");
