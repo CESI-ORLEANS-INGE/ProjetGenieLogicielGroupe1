@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\godie\\Cours\\11. CESI A3\\Blocs\\06 - G\u00E9nie logiciel\\- Projet\\EasySave\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{8D02ECEF-D0A3-FCC1-6C96-D4952AFC1DE8}|EasySave.csproj|c:\\users\\godie\\cours\\11. cesi a3\\blocs\\06 - g\u00E9nie logiciel\\- projet\\easysave\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{8D02ECEF-D0A3-FCC1-6C96-D4952AFC1DE8}|EasySave.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\godie\\Cours\\11. CESI A3\\Blocs\\06 - G\u00E9nie logiciel\\- Projet\\EasySave\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\Users\\godie\\Cours\\11. CESI A3\\Blocs\\06 - G\u00E9nie logiciel\\- Projet\\EasySave\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-04-30T13:12:32.696Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
