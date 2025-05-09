@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using IConfigurationManager;
 
-namespace CONFIGURATION
+namespace EasySave.Model
 
 {
     public interface IConfiguration

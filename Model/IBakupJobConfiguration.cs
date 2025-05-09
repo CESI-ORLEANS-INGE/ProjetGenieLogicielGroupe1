@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CONFIGURATION
+namespace EasySave.Model
 {
-    internal interface IBakupJobConfiguration
+    public interface IBakupJobConfiguration
     {
         string Name;
         string Source;

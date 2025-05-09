@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using IViewModel;
 
-namespace CONFIGURATION
+namespace EasySave.Model
 
 public class IConfigurationManager 
 {
