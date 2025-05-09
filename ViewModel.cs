@@ -4,7 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EasySave {
-    internal class ViewModel {
-    }
+namespace EasySave;
+
+public interface IViewModel {
 }
+internal class ViewModel {
+}
+

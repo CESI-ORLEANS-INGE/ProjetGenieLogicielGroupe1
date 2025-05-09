@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace EasySave.Model {
+    public interface IBackupJobState {
+    }
     internal class BackupJobState {
     }
 }
