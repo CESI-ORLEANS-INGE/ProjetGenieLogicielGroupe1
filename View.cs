@@ -5,6 +5,9 @@ using Logger;
 namespace EasySave;
 
 public interface IView {
+    // +----------------------------------+
+    // |            PROPERTIES            |
+    // +----------------------------------+
     IViewModel ViewModel { get; set; }
 
     // +----------------------------------+
