@@ -8,8 +8,8 @@ namespace EasySave.Model
 {
     public interface IStateFile
     {
-        void Save(List<IBackupJobState> jobsState);
-        List<IBackupJobState> Read();
+        public void Save(List<IBackupJobState> jobsState);
+        public List<IBackupJobState> Read();
     }
     public class StateFile 
     {

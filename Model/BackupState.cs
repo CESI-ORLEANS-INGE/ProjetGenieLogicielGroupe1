@@ -9,10 +9,10 @@ namespace EasySave.Model
 {
     public interface IBackupState 
     {
-        IStateFile File { get; set}
-        List<IBackupJobState> JobState { get; set; }
-        IBackupJobState CreateJobState(IBackupJobState backupJobState);
-        void OnJobStateChanged();
+        public IStateFile File { get; set; }
+        public List<IBackupJobState> JobState { get; set; }
+        public IBackupJobState CreateJobState(IBackupJobState backupJobState);
+        public void OnJobStateChanged();
     }
     public class BackupState 
     {
