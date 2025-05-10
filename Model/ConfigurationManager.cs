@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
-using IViewModel;
 
 namespace EasySave.Model;
 
 public interface IConfigurationManager {
-    IFile File;
+    IFileHandler File;
     Configuration Load(string path);
     void OnConfigurationChanged();
 }

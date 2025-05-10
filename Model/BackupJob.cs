@@ -25,8 +25,8 @@ public delegate void BackupJobCancelledEventHandler(object sender, IBackupJobCan
 
 public interface IBackupJob {
     public string Name { get; }
-    public IDirectory Source { get; }
-    public IDirectory Destination { get; }
+    public IDirectoryHandler Source { get; }
+    public IDirectoryHandler Destination { get; }
     public List<IBackupTask> Tasks { get; }
     public int CurrentTask { get; }
 
