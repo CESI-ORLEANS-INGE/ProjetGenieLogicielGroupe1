@@ -8,6 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="EasySave.Tests\**" />
+    <Compile Remove="Logger\**" />
+    <EmbeddedResource Remove="EasySave.Tests\**" />
+    <EmbeddedResource Remove="Logger\**" />
+    <None Remove="EasySave.Tests\**" />
+    <None Remove="Logger\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="Logger\Logger.csproj" />
   </ItemGroup>
 
