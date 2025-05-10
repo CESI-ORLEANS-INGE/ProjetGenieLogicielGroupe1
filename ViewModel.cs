@@ -12,7 +12,7 @@ public interface IViewModel : INotifyPropertyChanged {
     List<IBackupJob> BackupJobs { get; }
     List<IBackupJobState> BackupJobStates { get; }
     ILanguage Language { get; }
-    IConfiguration Configuration { get; }
+    Configuration Configuration { get; }
     void RunMain();
     void RunCommandRun();
     void RunCommandList();
