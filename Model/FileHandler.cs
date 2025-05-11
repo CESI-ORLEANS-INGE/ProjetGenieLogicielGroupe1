@@ -26,6 +26,12 @@ public interface IFileHandler : IEntryHandler {
     /// </summary>
     /// <param name="content">The content to append</param>
     public void Append(string content);
+
+    /// <summary>
+    /// Return the last modified date of the file
+    /// </summary>
+    /// <returns>The last modified date of the file</returns>
+    public DateTime GetLastModified();
 }
 
 public class FileHandler(string path) : EntryHandler(path), IFileHandler {
@@ -103,6 +109,17 @@ public class FileHandler(string path) : EntryHandler(path), IFileHandler {
     public void Append(string content) {
         using StreamWriter sw = new(this._Path, true);
         sw.Write(content);
+    }
+
+    public override IDirectoryHandler GetParent() {
+        return new DirectoryHandler(Path.GetDirectoryName(this._Path)!);
+    }
+
+    public DateTime GetLastModified() {
+        if (!this.Exists()) {
+            throw new FileNotFoundException("File not found");
+        }
+        return File.GetLastWriteTime(this._Path);
     }
 }
 

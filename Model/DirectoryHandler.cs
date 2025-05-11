@@ -16,9 +16,25 @@ public interface IDirectoryHandler : IEntryHandler {
     public List<IEntryHandler> GetEntries();
 
     /// <summary>
-    /// Return the parent directory of the current directory
+    /// Get a file from the directory, this file can be virtual and does not need to exist.
     /// </summary>
-    public IDirectoryHandler GetParent();
+    /// <param name="name">The name of the file</param>
+    /// <returns>The file handler, this file can be virtual</returns>
+    public IFileHandler GetFile(string name);
+
+    /// <summary>
+    /// Get a directory from the directory, this directory can be virtual and does not need to exist.
+    /// </summary>
+    /// <param name="name">The name of the directory</param>
+    /// <returns>The directory handler, this directory can be virtual</returns>
+    public IDirectoryHandler GetDirectory(string name);
+
+    /// <summary>
+    /// Check if the directory contains the entry
+    /// </summary>
+    /// <param name="entry">The entry to check</param>
+    /// <returns>Return true if the directory contains the entry, false otherwise</returns>
+    public bool Contains(IEntryHandler entry);
 }
 
 public class DirectoryHandler(string path) : EntryHandler(path), IDirectoryHandler {
@@ -99,7 +115,7 @@ public class DirectoryHandler(string path) : EntryHandler(path), IDirectoryHandl
         })];
     }
 
-    public IDirectoryHandler GetParent() {
+    public override IDirectoryHandler GetParent() {
         if (!this.Exists()) {
             throw new DirectoryNotFoundException("Directory not found");
         }
@@ -107,6 +123,23 @@ public class DirectoryHandler(string path) : EntryHandler(path), IDirectoryHandl
         string parentName = (Directory.GetParent(this._Path)?.FullName) ?? throw new DirectoryNotFoundException("Parent directory not found");
 
         return new DirectoryHandler(parentName);
+    }
+
+    public IFileHandler GetFile(string name) {
+        string filePath = Path.Combine(this._Path, name);
+        return new FileHandler(filePath);
+    }
+
+    public IDirectoryHandler GetDirectory(string name) {
+        string directoryPath = Path.Combine(this._Path, name);
+        return new DirectoryHandler(directoryPath);
+    }
+
+    public bool Contains(IEntryHandler entry) {
+        if (!this.Exists()) {
+            throw new DirectoryNotFoundException("Directory not found");
+        }
+        return this.GetEntries().Any(e => e.GetPath() == entry.GetPath());
     }
 }
 
