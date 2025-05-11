@@ -65,6 +65,11 @@ public interface IEntryHandler {
     /// </summary>
     /// <returns>True if the file or directory exists, false otherwise</returns>
     public bool Exists();
+
+    /// <summary>
+    /// Return the parent directory of the current directory or file
+    /// </summary>
+    public IDirectoryHandler GetParent();
 }
 
 public abstract class EntryHandler(string path) : IEntryHandler {
@@ -87,4 +92,10 @@ public abstract class EntryHandler(string path) : IEntryHandler {
     public abstract void Rename(string newName, bool forceOverride = false);
 
     public abstract bool Exists();
+
+    public abstract IDirectoryHandler GetParent();
+
+    public override string ToString() {
+        return this.GetPath();
+    }
 }

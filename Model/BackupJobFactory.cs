@@ -11,8 +11,44 @@ public interface IBackupJobFactory {
     List<IBackupJob> Create(List<IBackupJobConfiguration> configurations);
 } 
 
-internal class BackupJobFactory : IBackupJobFactory {
+public class BackupJobFactory : IBackupJobFactory { 
+    /// <summary>
+    /// Creates a backup job based on the provided configuration.
+    /// The configuration should specify the type of backup job to create.
+    /// </summary>
+    /// <param name="configuration">The configuration for the backup job.</param>
+    /// <returns>An instance of IBackupJob.</returns>
+    /// <exception cref="ArgumentException">Thrown when the backup job type is unknown.</exception>
+    public IBackupJob Create(IBackupJobConfiguration configuration) {
+        return configuration.Type switch {
+            "Sequential" => new SequentialBackupJob(
+                                configuration.Name,
+                                new DirectoryHandler(configuration.Source),
+                                new DirectoryHandler(configuration.Destination)
+                            ),
+            "Complete" => new CompleteBackupJob(
+                                configuration.Name,
+                                new DirectoryHandler(configuration.Source),
+                                new DirectoryHandler(configuration.Destination)
+                            ),
+            _ => throw new ArgumentException($"Unknown backup job type: {configuration.Type}"),
+        };
+    }
 
+    /// <summary>
+    /// Creates a list of backup jobs based on the provided configurations.
+    /// Each configuration should specify the type of backup job to create.
+    /// </summary>
+    /// <param name="configurations">The list of configurations for the backup jobs.</param>
+    /// <returns>A list of IBackupJob instances.</returns>
+    /// <exception cref="ArgumentException">Thrown when the backup job type is unknown.</exception>
+    public List<IBackupJob> Create(List<IBackupJobConfiguration> configurations) {
+        List<IBackupJob> jobs = [];
+        foreach (IBackupJobConfiguration configuration in configurations) {
+            jobs.Add(Create(configuration));
+        }
+        return jobs;
+    }
 }
 
  
