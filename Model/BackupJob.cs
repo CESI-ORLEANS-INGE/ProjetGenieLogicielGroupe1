@@ -6,22 +6,23 @@ using System.Threading.Tasks;
 
 namespace EasySave.Model;
 
-public class IBackupJobEventArgs(string jobName) : EventArgs {
+public class BackupJobEventArgs(string jobName) : EventArgs {
     public string? JobName { get; } = jobName;
 }
-public class IBackupJobProgressEventArgs(string jobName, int progress) : IBackupJobEventArgs(jobName) {
+public class BackupJobProgressEventArgs(string jobName, int progress) : BackupJobEventArgs(jobName) {
     public int? Progress { get; } = progress;
 }
-public class IBackupJobErrorEventArgs(string jobName, string errorMesssage) : IBackupJobEventArgs(jobName) {
+public class BackupJobErrorEventArgs(string jobName, string errorMesssage) : BackupJobEventArgs(jobName) {
     public string? ErrorMessage { get; } = errorMesssage;
 }
-public class IBackupJobCancelledEventArgs(string jobName, string cancelMessage) : IBackupJobEventArgs(jobName) {
+public class BackupJobCancelledEventArgs(string jobName, string cancelMessage) : BackupJobEventArgs(jobName) {
     public string? CancelMessage { get; } = cancelMessage;
 }
-public delegate void BackupJobEventHandler(object sender, IBackupJobEventArgs e);
-public delegate void BackupJobProgressEventHandler(object sender, IBackupJobProgressEventArgs e);
-public delegate void BackupJobErrorEventHandler(object sender, IBackupJobErrorEventArgs e);
-public delegate void BackupJobCancelledEventHandler(object sender, IBackupJobCancelledEventArgs e);
+
+public delegate void BackupJobEventHandler(object sender, BackupJobEventArgs e);
+public delegate void BackupJobProgressEventHandler(object sender, BackupJobProgressEventArgs e);
+public delegate void BackupJobErrorEventHandler(object sender, BackupJobErrorEventArgs e);
+public delegate void BackupJobCancelledEventHandler(object sender, BackupJobCancelledEventArgs e);
 
 public interface IBackupJob {
     /// <summary>
@@ -102,9 +103,9 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
     public abstract void Analyze();
 
     public void Run() {
-        this.BackupJobStarted?.Invoke(this, new IBackupJobEventArgs(this.Name));
+        this.BackupJobStarted?.Invoke(this, new BackupJobEventArgs(this.Name));
         if (Tasks.Count == 0) {
-            this.BackupJobFinished?.Invoke(this, new IBackupJobEventArgs(this.Name));
+            this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
             return;
         }
 
@@ -114,14 +115,14 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
             try {
                 task.Run();
                 task.EndTime = DateTime.Now;
-                this.BackupJobProgress?.Invoke(this, new IBackupJobProgressEventArgs(this.Name, (int)((this.CurrentTask + 1) * 100 / Tasks.Count)));
+                this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, (int)((this.CurrentTask + 1) * 100 / Tasks.Count)));
             } catch (Exception ex) {
-                this.BackupJobError?.Invoke(this, new IBackupJobErrorEventArgs(this.Name, ex.Message));
+                this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
                 return;
             }
         }
 
-        this.BackupJobFinished?.Invoke(this, new IBackupJobEventArgs(this.Name));
+        this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
     }
 }
 

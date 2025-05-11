@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 namespace EasySave.Model;
 
 public interface IBackupJobFactory {
-    IBackupJob Create(IBackupJobConfiguration configuration);
-    List<IBackupJob> Create(List<IBackupJobConfiguration> configurations);
+    public static abstract IBackupJob Create(IBackupJobConfiguration configuration);
+    public static abstract List<IBackupJob> Create(List<IBackupJobConfiguration> configurations);
 } 
 
 public class BackupJobFactory : IBackupJobFactory { 
@@ -19,7 +19,7 @@ public class BackupJobFactory : IBackupJobFactory {
     /// <param name="configuration">The configuration for the backup job.</param>
     /// <returns>An instance of IBackupJob.</returns>
     /// <exception cref="ArgumentException">Thrown when the backup job type is unknown.</exception>
-    public IBackupJob Create(IBackupJobConfiguration configuration) {
+    public static IBackupJob Create(IBackupJobConfiguration configuration) {
         return configuration.Type switch {
             "Sequential" => new SequentialBackupJob(
                                 configuration.Name,
@@ -42,10 +42,10 @@ public class BackupJobFactory : IBackupJobFactory {
     /// <param name="configurations">The list of configurations for the backup jobs.</param>
     /// <returns>A list of IBackupJob instances.</returns>
     /// <exception cref="ArgumentException">Thrown when the backup job type is unknown.</exception>
-    public List<IBackupJob> Create(List<IBackupJobConfiguration> configurations) {
+    public static List<IBackupJob> Create(List<IBackupJobConfiguration> configurations) {
         List<IBackupJob> jobs = [];
         foreach (IBackupJobConfiguration configuration in configurations) {
-            jobs.Add(Create(configuration));
+            jobs.Add(BackupJobFactory.Create(configuration));
         }
         return jobs;
     }
