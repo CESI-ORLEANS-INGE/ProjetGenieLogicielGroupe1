@@ -28,7 +28,7 @@ namespace EasySave.Model {
         public void OnJobCancelled();
         public event EventHandler JobStateChanged;
     }
-    internal class BackupJobState {
+    public class BackupJobState {
         
     }
 }

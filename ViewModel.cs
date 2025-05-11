@@ -8,24 +8,204 @@ using System.Threading.Tasks;
 
 namespace EasySave;
 
-public interface IViewModel : INotifyPropertyChanged {
-    List<IBackupJob> BackupJobs { get; }
-    List<IBackupJobState> BackupJobStates { get; }
-    ILanguage Language { get; }
-    Configuration Configuration { get; }
-    void RunMain();
-    void RunCommandRun();
-    void RunCommandList();
-    void RunCommandAdd();
-    void RunCommandRemove();
-    void RunCommandLanguage();
-    List<string> ParseCommand(string command);
-    void OnLanguageChanged(string language);
-    void OnJobStateChanged(IBackupJobState jobState);
-    void OnConfigurationChanged();
-    void OnPropertyChanged(string propertyName);
+public class LanguageChangedEventArgs(string language) : EventArgs {
+    public string? Language { get; } = language;
 }
-internal class ViewModel {
+public class JobStateChangedEventArgs(IBackupJobState jobState) : EventArgs {
+    public IBackupJobState? JobState { get; } = jobState;
+}
+public class ConfigurationChangedEventArgs(IConfiguration configuration) : EventArgs {
+    public IConfiguration? Configuration { get; } = configuration;
 }
 
- 
+public delegate void LanguageChangedEventHandler(object sender, LanguageChangedEventArgs e);
+public delegate void JobStateChangedEventHandler(object sender, JobStateChangedEventArgs e);
+public delegate void ConfigurationChangedEventHandler(object sender, ConfigurationChangedEventArgs e);
+
+public interface IViewModel : INotifyPropertyChanged {
+    /// <summary>
+    /// List of all backup jobs.
+    /// </summary>
+    List<IBackupJob> BackupJobs { get; }
+
+    /// <summary>
+    /// Backup state
+    /// </summary>
+    IBackupState BackupState { get; set; }
+
+    /// <summary>
+    /// Language used in the application.
+    /// </summary>
+    ILanguage Language { get; }
+
+    /// <summary>
+    /// Configuration object containing the application settings.
+    /// </summary>
+    IConfiguration Configuration { get; }
+
+    /// <summary>
+    /// Runs the command to start the backup job.
+    /// </summary>
+    void RunCommandRun(List<string> indexOrNameList);
+
+    /// <summary>
+    /// Runs the command to add a new backup job.
+    /// </summary>
+    void RunCommandAdd(string name, string source, string destination, string type);
+
+    /// <summary>
+    /// Runs the command to remove a backup job.
+    /// </summary>
+    void RunCommandRemove(string indexOrName);
+
+    /// <summary>
+    /// Runs the command to change the application language.
+    /// </summary>
+    void RunCommandLanguage(string language);
+
+    /// <summary>
+    /// Called when the language is changed.
+    /// </summary>
+    /// <param name="language">The new language.</param>
+    void OnLanguageChanged(string language);
+
+    /// <summary>
+    /// Called when the job state is changed.
+    /// </summary>
+    /// <param name="jobState">The new job state.</param>
+    void OnJobStateChanged(IBackupJobState jobState);
+
+    /// <summary>
+    /// Called when the configuration is changed.
+    /// </summary>
+    void OnConfigurationChanged();
+
+    /// <summary>
+    /// Called when a property is changed.
+    /// </summary>
+    /// <param name="propertyName">The name of the property that changed.</param>
+    void OnPropertyChanged(string propertyName);
+
+    event LanguageChangedEventHandler? LanguageChanged;
+    event JobStateChangedEventHandler? JobStateChanged;
+    event ConfigurationChangedEventHandler? ConfigurationChanged;
+}
+
+public class ViewModel() {
+    public List<IBackupJob> BackupJobs { get; set; } = [];
+    public IBackupState BackupState { get; set; } = (IBackupState)new BackupState();
+    public ILanguage Language { get; set; } = new Language();
+    public IConfiguration Configuration { get; set; } = new Configuration();
+
+    public void RunCommandRun(List<string> indexOrNameList) {
+        List<IBackupJobConfiguration> jobsToRun = [];
+
+        foreach (string indexOrName in indexOrNameList) {
+            // Check if the indexOrName is a number
+            if (int.TryParse(indexOrName, out int id)) {
+                id = id - 1; // Adjust for 0-based index
+                if (id < 0 || id >= this.BackupJobs.Count) {
+                    throw new Exception($"No backup job found with index: {indexOrName}");
+                } else {
+                    jobsToRun.Add(this.Configuration.Jobs[id]);
+                }
+            } else {
+                IBackupJobConfiguration? job = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
+                if (job is null) {
+                    throw new Exception($"No backup job found with name: {indexOrName}");
+                } else {
+                    jobsToRun.Add(job);
+                }
+            }
+        }
+
+        // Check if there are any jobs to run
+        if (jobsToRun.Count == 0) {
+            throw new Exception("No backup jobs available.");
+        }
+
+        this.BackupJobs = BackupJobFactory.Create(jobsToRun);
+
+        this.BackupState = (IBackupState)new BackupState();
+        foreach (IBackupJob job in this.BackupJobs) {
+            this.BackupState.CreateJobState(job);
+        }
+
+        foreach (IBackupJob job in this.BackupJobs) {
+            job.Analyze();
+        }
+
+        foreach (IBackupJob job in this.BackupJobs) {
+            job.Run();
+        }
+    }
+    public void RunCommandAdd(string name, string source, string destination, string type) {
+        if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
+            throw new Exception($"A backup job with the name '{name}' already exists.");
+        }
+
+        if (this.Configuration.Jobs.FirstOrDefault(job =>
+            job.Source.Equals(source, StringComparison.OrdinalIgnoreCase) &&
+            job.Destination.Equals(destination, StringComparison.OrdinalIgnoreCase) &&
+            job.Type.Equals(type, StringComparison.OrdinalIgnoreCase)
+         ) is not null) {
+            throw new Exception($"A backup job with the same source, destination and type already exists.");
+        }
+
+        // Create a new backup job configuration
+        IBackupJobConfiguration newJob = new BackupJobConfiguration(name, source, destination, type);
+
+        // Add the new job to the configuration
+        this.Configuration.Jobs.Add(newJob);
+    }
+    public void RunCommandRemove(string indexOrName) {
+        if (this.BackupJobs.Count == 0) {
+            throw new Exception("No backup jobs available.");
+        }
+
+        IBackupJobConfiguration? jobToRemove = null;
+        // Check if the indexOrName is a number
+        if (int.TryParse(indexOrName, out int id)) {
+            id = id - 1; // Adjust for 0-based index
+            if (id < 0 || id >= this.BackupJobs.Count) {
+                jobToRemove = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
+            } else {
+                // Remove the backup job by index
+                jobToRemove = this.Configuration.Jobs[id];
+            }
+        } else {
+            jobToRemove = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (jobToRemove is null) {
+            throw new Exception($"No backup job found with name or index: {indexOrName}");
+        }
+
+        // Remove the backup job from the configuration
+        this.Configuration.Jobs.Remove(jobToRemove);
+    }
+    public void RunCommandLanguage(string language) {
+        this.Language.SetLanguage(language);
+    }
+
+
+    public void OnLanguageChanged(string language) {
+        this.LanguageChanged?.Invoke(this, new LanguageChangedEventArgs(language));
+    }
+    public void OnJobStateChanged(IBackupJobState jobState) {
+        this.JobStateChanged?.Invoke(this, new JobStateChangedEventArgs(jobState));
+    }
+    public void OnConfigurationChanged() {
+        this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs(this.Configuration));
+    }
+
+    public void OnPropertyChanged(string propertyName) {
+        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+    public event LanguageChangedEventHandler? LanguageChanged;
+    public event JobStateChangedEventHandler? JobStateChanged;
+    public event ConfigurationChangedEventHandler? ConfigurationChanged;
+}
+
