@@ -10,6 +10,6 @@ public interface IDirectory : IEntry {
     List<IEntry> GetEntries();
 }
 
-internal class Directory : IDirectory {
+internal class DirectoryHandler : IDirectory {
 }
 

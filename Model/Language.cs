@@ -17,6 +17,10 @@ namespace EasySave.Model {
 
     public class Language : ILanguage
     {
+        // Singleton instance of Language
+        public static Language Instance { get; } = new Language();
+        // Private constructor to prevent instantiation from outside
+        private Language() { }
         public Dictionary<string, string> Traductions { get; set; } = new Dictionary<string, string>();
         private string language { get; set; }
 

@@ -15,6 +15,12 @@ namespace EasySave.Model
 
     public class ConfigurationManager : IConfigurationManager
     {
+        // Singleton instance of ConfigurationManager
+        public static ConfigurationManager Instance { get; } = new ConfigurationManager();
+
+        // Private constructor to prevent instantiation from outside
+        private ConfigurationManager() { }
+
         public IFile File { get; set; } = new ConfigurationFile();
         public IConfiguration configuration { get; set; } = new Configuration();
 

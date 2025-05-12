@@ -10,8 +10,9 @@ public interface IFile : IEntry {
     string GetExtension();
     void Write(string content);
     void Append(string content);
+    IConfiguration Load(string path);
 }
 
-internal class File : IFile {
+internal class FileHandler : IFile {
 }
 

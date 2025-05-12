@@ -17,5 +17,5 @@ public interface IEntry {
     bool Exists();
 }
 
-internal class Entry : IEntry {
+internal class EntryHandler : IEntry {
 }
