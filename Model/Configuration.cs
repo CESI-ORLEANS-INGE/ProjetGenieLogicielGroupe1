@@ -17,7 +17,21 @@ namespace EasySave.Model {
         public static Configuration Instance { get; } = new Configuration();
 
         // Private constructor to prevent instantiation from outside
-        private Configuration() { }
+        private Configuration() { } 
+
+        public static Configuration Init(string language , List<IBackupJobConfiguration> Jobs)
+        {
+            //Verify if the configuration is already initialized
+            if (Instance != null)
+            {
+                throw new InvalidOperationException("Configuration is already initialized.");
+            }
+            // Initialize the configuration with the provided language and jobs
+            Configuration configuration = new Configuration();
+            configuration.Language = language;
+            configuration.Jobs = Jobs;
+            return configuration;
+        }
 
         // Properties
         public string Language { get; set; } = string.Empty; 

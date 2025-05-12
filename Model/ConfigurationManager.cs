@@ -8,7 +8,7 @@ namespace EasySave.Model
 {
     public interface IConfigurationManager
     {
-        IFile File { get; set; }
+        IConfigurationFile File { get; set; }
         IConfiguration Load(string path);
         void OnConfigurationChanged();
     }
@@ -21,13 +21,29 @@ namespace EasySave.Model
         // Private constructor to prevent instantiation from outside
         private ConfigurationManager() { }
 
-        public IFile File { get; set; } = new ConfigurationFile();
-        public IConfiguration configuration { get; set; } = new Configuration();
+        // Properties
+        public IConfigurationFile File { get; set; } = new ConfigurationFile();
+        public IConfiguration configuration { get; set; } 
 
         public Configuration Load(string path)
         {
             // Load the configuration from the file  
-            configuration = File.Load(path);
+            dynamic jason = File.Read(path);
+
+            // extract the language from the configurationfile
+            string language = jason.Language;
+            // extract the jobs from the configurationfile
+            List<IBackupJobConfiguration> jobs = jason.Jobs;
+            // Initialize the configuration with the loaded values
+            configuration = Configuration.Init(language, jobs);
+
+            // Place all Subscriptions to the events here
+            // Subscribe to the ConfigurationChanged event
+            configuration.ConfigurationChanged += (sender, e) => OnConfigurationChanged();
+            // Subscribe to the JobConfigurationChanged event
+            configuration.ConfigurationChanged += (sender, e) => OnConfigurationChanged();
+            // Subscribe to the LanguageChanged event
+            Language.Instance.LanguageChanged += (sender, e) => OnConfigurationChanged();
 
             // Return the loaded configuration  
             return (Configuration)configuration;
@@ -40,14 +56,14 @@ namespace EasySave.Model
             string NewConfiguration;
 
             // add the language to the configuration
-            string language = Language.GetLanguage();
+            string language = Language.Instance.GetLanguage();
             NewConfiguration = "{[\"Language\":\"";
             NewConfiguration += language;
 
             // add jobs configurations to the configuration
             NewConfiguration += "\",\"Jobs\":[";
             int NumberOfJobs = 0;
-            foreach (BackupJobConfiguration in Configuration.Jobs)
+            foreach (var BackupJobConfiguration in configuration.Jobs) // Fixed: Added 'var' and specified 'configuration.Jobs'
             {
                 NumberOfJobs++;
                 NewConfiguration += "{[\"Name\":\"";

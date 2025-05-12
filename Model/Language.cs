@@ -7,8 +7,7 @@ using System.Threading.Tasks;
 namespace EasySave.Model {
     public interface ILanguage
     {
-        private string language { get; set; }
-        Dictionary<string, string> Traductions { get; set; }
+        public Dictionary<string, string> Traductions { get; set; }
         void SetLanguage(string language);
         string GetLanguage();
         void Load();
@@ -22,7 +21,7 @@ namespace EasySave.Model {
         // Private constructor to prevent instantiation from outside
         private Language() { }
         public Dictionary<string, string> Traductions { get; set; } = new Dictionary<string, string>();
-        private string language { get; set; }
+        protected string language { get; set; }
 
 
         // Initialize the event with an empty delegate to avoid null issues  

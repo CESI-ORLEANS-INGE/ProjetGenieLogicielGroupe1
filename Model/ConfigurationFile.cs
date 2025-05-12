@@ -16,7 +16,15 @@ namespace EasySave.Model {
     {
         public void Save(JsonArray configuration)
         {
-            
+
+            // Convert JsonArray to JsonDocument
+            JsonDocument jsonDocument = JsonDocument.Parse(configuration.ToString());
+            // save the json document to a file
+            string jsonString = jsonDocument.RootElement.ToString();
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasySave", "configuration.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllText(path, jsonString);
+            // Display a message indicating that the configuration has been saved
             Console.WriteLine("Configuration saved.");
         }
 
