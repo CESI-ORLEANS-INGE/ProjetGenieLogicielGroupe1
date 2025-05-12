@@ -6,7 +6,8 @@ using System.Text.Json.Nodes;
 using static EasySave.Model.IConfigurationManager;
 
 namespace EasySave.Model {
-    public interface IConfigurationFile {
+    public interface IConfigurationFile 
+    {
         void Save(JsonArray configuration);
         JsonArray Read(string path);
     }

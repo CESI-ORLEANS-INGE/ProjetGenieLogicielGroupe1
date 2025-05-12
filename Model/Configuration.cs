@@ -13,6 +13,13 @@ namespace EasySave.Model {
 
     public class Configuration : IConfiguration
     {
+        // Singleton instance of Configuration
+        public static Configuration Instance { get; } = new Configuration();
+
+        // Private constructor to prevent instantiation from outside
+        private Configuration() { }
+
+        // Properties
         public string Language { get; set; } = string.Empty; 
         public List<IBackupJobConfiguration> Jobs { get; set; }
         public event EventHandler ConfigurationChanged = delegate { }; 

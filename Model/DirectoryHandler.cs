@@ -133,7 +133,7 @@ public class DirectoryHandler(string path) : EntryHandler(path), IDirectoryHandl
     public IDirectoryHandler GetDirectory(string name) {
         string directoryPath = Path.Combine(this._Path, name);
         return new DirectoryHandler(directoryPath);
-    }
+}
 
     public bool Contains(IEntryHandler entry) {
         if (!this.Exists()) {
