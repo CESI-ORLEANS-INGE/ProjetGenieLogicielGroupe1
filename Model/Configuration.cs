@@ -23,10 +23,7 @@ namespace EasySave.Model {
         public string Language { get; set; } = string.Empty; 
         public List<IBackupJobConfiguration> Jobs { get; set; }
         public event EventHandler ConfigurationChanged = delegate { }; 
-        public Configuration()
-        {
-            Jobs = new List<IBackupJobConfiguration>();
-        }
+        
         public void OnJobConfigurationChanged()
         {
             ConfigurationChanged?.Invoke(this, EventArgs.Empty);
