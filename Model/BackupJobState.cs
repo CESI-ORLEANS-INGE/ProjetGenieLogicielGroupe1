@@ -20,12 +20,12 @@ namespace EasySave.Model {
         public double FilesLeft { get; set; }
         public double FilesLeftSize { get; set; }
         public int Progression { get; set; }
-        public void OnJobStarted(object sender, IBackupJobEventArgs e);
-        public void OnJobProgress(object sender, IBackupJobEventArgs e);
-        public void OnJobPaused(object sender, IBackupJobEventArgs e);
-        public void OnJobResumed(object sender, IBackupJobEventArgs e);
-        public void OnJobFinished(object sender, IBackupJobEventArgs e);
-        public void OnJobCancelled(object sender, IBackupJobEventArgs e);
+        public void OnJobStarted(object sender, BackupJobEventArgs e);
+        public void OnJobProgress(object sender, BackupJobEventArgs e);
+        public void OnJobPaused(object sender, BackupJobEventArgs e);
+        public void OnJobResumed(object sender, BackupJobEventArgs e);
+        public void OnJobFinished(object sender, BackupJobEventArgs e);
+        public void OnJobCancelled(object sender, BackupJobEventArgs e);
         public event EventHandler JobStateChanged;
     }
     public class IJobStateChangedEventArgs : EventArgs
@@ -48,7 +48,7 @@ namespace EasySave.Model {
         public BackupJobState(IBackupJob backupJob)
         {
             SourceFilePath = backupJob.Source.GetPath();
-            DestinationFilePath = backupJob.Destination.ToString();
+            DestinationFilePath = backupJob.Destination.GetPath();
             TotalFilesToCopy = backupJob.Tasks.Count;
             //TotalFilesSize = backupJob.Tasks.Sum(t => t.FileSize) ?? 0; 
             FilesLeft = TotalFilesToCopy;
@@ -72,28 +72,28 @@ namespace EasySave.Model {
                 NewState = this.State
             });
         }
-        public void OnJobStarted(object sender, IBackupJobEventArgs e) {
+        public void OnJobStarted(object sender, BackupJobEventArgs e) {
 
             State = State.ACTIVE;
             RaiseStateChanged();
         }
-        public void OnJobProgress(object sender, IBackupJobEventArgs e) {
+        public void OnJobProgress(object sender, BackupJobEventArgs e) {
             State = State.IN_PROGRESS;
             RaiseStateChanged();
         }
-        public void OnJobPaused(object sender, IBackupJobEventArgs e) {
+        public void OnJobPaused(object sender, BackupJobEventArgs e) {
             State = State.BREAK;
             RaiseStateChanged();
         }
-        public void OnJobResumed(object sender, IBackupJobEventArgs e) {
+        public void OnJobResumed(object sender, BackupJobEventArgs e) {
             State = State.RESUMED;
             RaiseStateChanged();
         }
-        public void OnJobFinished(object sender, IBackupJobEventArgs e) {
+        public void OnJobFinished(object sender, BackupJobEventArgs e) {
             State = State.END;
             RaiseStateChanged();
         }
-        public void OnJobCancelled(object sender, IBackupJobEventArgs e) {
+        public void OnJobCancelled(object sender, BackupJobEventArgs e) {
             State = State.ERROR;
             RaiseStateChanged();
         }
