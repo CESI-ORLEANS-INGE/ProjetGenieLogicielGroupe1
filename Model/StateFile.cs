@@ -51,6 +51,7 @@ namespace EasySave.Model
          public List<IBackupJobState> Read()
         {
             throw new NotImplementedException("This method is not implemented yet");
+            /*
             string jsonString = File.ReadAllText("c:\\temp\\state.json");
 
             var dtoList = JsonSerializer.Deserialize<List<JobStateDto>>(jsonString);
@@ -78,6 +79,7 @@ namespace EasySave.Model
             }
 
             return result;
+            */
         }
     }
 }
