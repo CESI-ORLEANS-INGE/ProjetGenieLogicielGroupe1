@@ -8,8 +8,21 @@ namespace EasySave.Model
 {
     public interface IConfigurationManager
     {
+        // Interface for ConfigurationManager class
+        /// <summary>
+        /// Singleton instance of ConfigurationManager
+        /// </summary>
         IConfigurationFile File { get; set; }
+        /// <summary>
+        /// Load the configuration from a file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         IConfiguration Load(string path);
+        /// <summary>
+        /// Save the configuration to a file
+        /// </summary>
+        
         void OnConfigurationChanged();
     }
 

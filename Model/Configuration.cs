@@ -5,9 +5,22 @@ using static EasySave.Model.IConfigurationManager;
 
 namespace EasySave.Model {
     public interface IConfiguration {
+        // Interface for Configuration class
+        /// <summary>
+        /// Singleton instance of Configuration
+        /// </summary>
         string Language { get; set; }
+        /// <summary>
+        /// List of backup jobs
+        /// </summary>
         List<IBackupJobConfiguration> Jobs { get; set; }
+        /// <summary>
+        /// Event triggered when the configuration changes
+        /// </summary>
         void OnJobConfigurationChanged();
+        /// <summary>
+        /// Event triggered when the configuration changes
+        /// </summary>
         event EventHandler ConfigurationChanged;
     }
 

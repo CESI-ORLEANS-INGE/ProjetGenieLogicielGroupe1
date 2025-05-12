@@ -8,7 +8,18 @@ using static EasySave.Model.IConfigurationManager;
 namespace EasySave.Model {
     public interface IConfigurationFile 
     {
+        // Interface for ConfigurationFile class
+        /// <summary>
+        /// Save the configuration to a file
+        /// </summary>
+        /// <param name="configuration"></param>
         void Save(JsonArray configuration);
+
+        /// <summary>
+        /// Read the configuration from a file
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         JsonArray Read(string path);
     }
 
@@ -32,14 +43,17 @@ namespace EasySave.Model {
         {
             Console.WriteLine($"Reading configuration from {path}");
             string json = File.ReadAllText(path);
+            // Parse the JSON string into a JsonNode
             JsonNode? jsonNode = JsonNode.Parse(json);
-
+            // Check if the parsed JSON is a JsonArray
             if (jsonNode is JsonArray jsonArray)
             {
+                // Successfully parsed as JsonArray
                 return jsonArray;
             }
             else
             {
+                // Handle the case where the JSON is not a JsonArray
                 throw new InvalidOperationException("The JSON content is not a valid JsonArray.");
             }
         }
