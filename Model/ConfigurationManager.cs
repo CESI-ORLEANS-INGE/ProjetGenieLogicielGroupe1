@@ -2,111 +2,53 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using static EasySave.IViewModel;
 
-namespace EasySave.Model
-{
-    public interface IConfigurationManager
-    {
-        // Interface for ConfigurationManager class
-        /// <summary>
-        /// Singleton instance of ConfigurationManager
-        /// </summary>
-        IConfigurationFile File { get; set; }
-        /// <summary>
-        /// Load the configuration from a file
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        IConfiguration Load(string path);
-        /// <summary>
-        /// Save the configuration to a file
-        /// </summary>
-        
-        void OnConfigurationChanged();
+namespace EasySave.Model;
+
+public interface IConfigurationManager {
+    IConfiguration Load(string filePath);
+    void Save(string filePath, IConfiguration configuration);
+}
+
+public class ConfigurationManager : IConfigurationManager {
+    private static ConfigurationManager? Instance;
+    private readonly Type Loader;
+    public IConfiguration? Configuration { get; set; }
+
+    public ConfigurationManager(Type loader) {
+        if (ConfigurationManager.Instance != null) {
+            throw new InvalidOperationException("ConfigurationManager is a singleton. Use Instance property to access it.");
+        }
+
+        if (!typeof(IConfigurationFile).IsAssignableFrom(loader)){
+            throw new ArgumentException("Loader must implement IConfigurationFile", nameof(loader));
+        }
+
+        this.Loader = loader;
+
+        ConfigurationManager.Instance = this;
     }
 
-    public class ConfigurationManager : IConfigurationManager
-    {
-        // Singleton instance of ConfigurationManager
-        public static ConfigurationManager Instance { get; } = new ConfigurationManager();
 
-        // Private constructor to prevent instantiation from outside
-        private ConfigurationManager() { }
+    public IConfiguration Load(string filePath) {
+        IConfigurationFile file = (IConfigurationFile)Activator.CreateInstance(this.Loader, filePath)!;
+        IConfiguration configuration = file.Read() ?? throw new InvalidOperationException("Configuration is null");
 
-        // Properties
-        public IConfigurationFile File { get; set; } = new ConfigurationFile();
-        public IConfiguration configuration { get; set; } 
+        configuration.ConfigurationChanged += (sender, e) => {
+            OnConfigurationChanged(filePath);
+        };
 
-        public Configuration Load(string path)
-        {
-            // Load the configuration from the file  
-            dynamic jason = File.Read(path);
+        this.Configuration = configuration;
 
-            // extract the language from the configurationfile
-            string language = jason.Language;
-            // extract the jobs from the configurationfile
-            List<IBackupJobConfiguration> jobs = jason.Jobs;
-            // Initialize the configuration with the loaded values
-            configuration = Configuration.Init(language, jobs);
+        return configuration;
+    }
 
-            // Place all Subscriptions to the events here
-            // Subscribe to the ConfigurationChanged event
-            configuration.ConfigurationChanged += (sender, e) => OnConfigurationChanged();
-            // Subscribe to the JobConfigurationChanged event
-            configuration.ConfigurationChanged += (sender, e) => OnConfigurationChanged();
-            // Subscribe to the LanguageChanged event
-            Language.Instance.LanguageChanged += (sender, e) => OnConfigurationChanged();
+    public void Save(string filePath, IConfiguration configuration) {
+        IConfigurationFile file = (IConfigurationFile)Activator.CreateInstance(this.Loader, filePath)!;
+        file.Save(configuration);
+    }
 
-            // Return the loaded configuration  
-            return (Configuration)configuration;
-        }
-
-        public void OnConfigurationChanged()
-        {
-            // structuralize the configuration Save in json format
-            //initialize the string 
-            string NewConfiguration;
-
-            // add the language to the configuration
-            string language = Language.Instance.GetLanguage();
-            NewConfiguration = "{[\"Language\":\"";
-            NewConfiguration += language;
-
-            // add jobs configurations to the configuration
-            NewConfiguration += "\",\"Jobs\":[";
-            int NumberOfJobs = 0;
-            foreach (var BackupJobConfiguration in configuration.Jobs) // Fixed: Added 'var' and specified 'configuration.Jobs'
-            {
-                NumberOfJobs++;
-                NewConfiguration += "{[\"Name\":\"";
-                NewConfiguration += BackupJobConfiguration.Name;
-                NewConfiguration += "\",\"Source\":\"";
-                NewConfiguration += BackupJobConfiguration.Source;
-                NewConfiguration += "\",\"Destination\":\"";
-                NewConfiguration += BackupJobConfiguration.Destination;
-                NewConfiguration += "\",\"Type\":\"";
-                NewConfiguration += BackupJobConfiguration.Type;
-                NewConfiguration += "\"},";
-            }
-            NewConfiguration += "]}";
-
-            // parse the string to json
-            JsonDocument jsonDocument = JsonDocument.Parse(NewConfiguration);
-
-            // Convert JsonDocument to JsonArray
-            JsonArray jsonArray = new JsonArray();
-            foreach (var element in jsonDocument.RootElement.EnumerateArray())
-            {
-                jsonArray.Add(JsonNode.Parse(element.GetRawText()));
-            }
-
-            File.Save(jsonArray);
-        }
-
-        IConfiguration IConfigurationManager.Load(string path)
-        {
-            return Load(path);
-        }
+    private void OnConfigurationChanged(string filePath) {
+        this.Save(filePath, this.Configuration!);
     }
 }

@@ -6,15 +6,14 @@ using System.Threading.Tasks;
 
 
 namespace EasySave.Model {
-    public enum State
-    {
-        ACTIVE, END, ERROR, IN_PROGRESS, BREAK, RESUMED
+    public enum State {
+        NOT_STARTED, ACTIVE, END, ERROR, IN_PROGRESS, BREAK, RESUMED
     }
     public interface IBackupJobState {
         public IBackupJob BackupJob { get; set; }
         public string SourceFilePath { get; set; }
         public string DestinationFilePath { get; set; }
-        public State state { get; set; }
+        public State State { get; set; }
         public double TotalFilesToCopy { get; set; }
         public double TotalFilesSize { get; set; }
         public double FilesLeft { get; set; }
@@ -26,35 +25,34 @@ namespace EasySave.Model {
         public void OnJobResumed(object sender, BackupJobEventArgs e);
         public void OnJobFinished(object sender, BackupJobEventArgs e);
         public void OnJobCancelled(object sender, BackupJobEventArgs e);
-        public event EventHandler JobStateChanged;
+        public event EventHandler<IJobStateChangedEventArgs> JobStateChanged;
     }
-    public class IJobStateChangedEventArgs : EventArgs
-    {
+    public class IJobStateChangedEventArgs : EventArgs {
         public string? JobName { get; set; }
         public State NewState { get; set; }
     }
 
-    public class BackupJobState {
+    public class BackupJobState : IBackupJobState {
         public IBackupJob BackupJob { get; set; }
         public string SourceFilePath { get; set; }
         public string DestinationFilePath { get; set; }
-        public State State { get; set; }
+        public State State { get; set; } = State.NOT_STARTED;
         public double TotalFilesToCopy { get; set; }
         public double TotalFilesSize { get; set; }
         public double FilesLeft { get; set; }
         public double FilesLeftSize { get; set; }
         public int Progression { get; set; }
 
-        public BackupJobState(IBackupJob backupJob)
-        {
-            SourceFilePath = backupJob.Source.GetPath();
-            DestinationFilePath = backupJob.Destination.GetPath();
-            TotalFilesToCopy = backupJob.Tasks.Count;
-            TotalFilesSize = backupJob.Tasks.Where( t => t is BackupCopyTask).Sum(t => t.Source?.GetSize() ?? 0); 
-            FilesLeft = TotalFilesToCopy;
-            FilesLeftSize = TotalFilesSize;
-            Progression = 0;
-            
+        public BackupJobState(IBackupJob backupJob) {
+            this.BackupJob = backupJob;
+            this.SourceFilePath = backupJob.Source.GetPath();
+            this.DestinationFilePath = backupJob.Destination.GetPath();
+            this.TotalFilesToCopy = backupJob.Tasks.Count;
+            this.TotalFilesSize = backupJob.Tasks.Where(t => t is BackupCopyTask).Sum(t => t.Source?.GetSize() ?? 0);
+            this.FilesLeft = TotalFilesToCopy;
+            this.FilesLeftSize = TotalFilesSize;
+            this.Progression = 0;
+
 
             // S'abonner aux événements de BackupJob
             backupJob.BackupJobStarted += OnJobStarted;
@@ -64,10 +62,8 @@ namespace EasySave.Model {
             backupJob.BackupJobFinished += OnJobFinished;
             backupJob.BackupJobCancelled += OnJobCancelled;
         }
-        private void RaiseStateChanged()
-        {
-            JobStateChanged?.Invoke(this, new IJobStateChangedEventArgs
-            {
+        private void RaiseStateChanged() {
+            JobStateChanged?.Invoke(this, new IJobStateChangedEventArgs {
                 JobName = BackupJob.Name,
                 NewState = this.State
             });

@@ -83,10 +83,13 @@ public class View : IView {
 
     public static void Main(string[] args) {
         // Initialize the ViewModel
-        View.ViewModel = (IViewModel)new ViewModel();
+        View.ViewModel = new ViewModel();
 
         if (args.Length > 0) {
             switch (args[0].ToLower()) {
+                case "list":
+                    View.RunCommandList();
+                    break;
                 case "run":
                     View.RunCommandRun(View.ParseJobList(args[1]));
                     break;
@@ -108,67 +111,76 @@ public class View : IView {
                 Console.WriteLine("+----------------------------------+");
                 Console.WriteLine("|       EasySave Application       |");
                 Console.WriteLine("+----------------------------------+");
-                Console.WriteLine("| 1. Run Backup Job                |");
-                Console.WriteLine("| 2. Add Backup Job                |");
-                Console.WriteLine("| 3. Remove Backup Job             |");
-                Console.WriteLine("| 4. Change Language               |");
+                Console.WriteLine("| 1. List Backup Jobs              |");
+                Console.WriteLine("| 2. Run Backup Job                |");
+                Console.WriteLine("| 3. Add Backup Job                |");
+                Console.WriteLine("| 4. Remove Backup Job             |");
+                Console.WriteLine("| 5. Change Language               |");
                 Console.WriteLine("+----------------------------------+");
                 Console.Write("+ Choose an option: ");
                 string? choice = Console.ReadLine();
 
-                if (choice == "1") {
-                    Console.Write("+ Enter the index or name of the backup job to run: ");
-                    string? jobList = Console.ReadLine();
-                    if (jobList is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
+                try {
+                    if (choice == "1") {
+                        View.RunCommandList();
+                    } else if (choice == "2") {
+                        Console.Write("+ Enter the index or name of the backup job to run: ");
+                        string? jobList = Console.ReadLine();
+                        if (jobList is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        View.RunCommandRun(View.ParseJobList(jobList));
+                    } else if (choice == "3") {
+                        Console.Write("+ Enter the name of the backup job: ");
+                        string? name = Console.ReadLine();
+                        if (name is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        Console.Write("+ Enter the source path: ");
+                        string? source = Console.ReadLine();
+                        if (source is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        Console.Write("+ Enter the destination path: ");
+                        string? destination = Console.ReadLine();
+                        if (destination is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        Console.Write("+ Enter the type of backup job: ");
+                        string? type = Console.ReadLine();
+                        if (type is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        View.RunCommandAdd(name, source, destination, type);
+                    } else if (choice == "4") {
+                        Console.Write("+ Enter the index or name of the backup job to remove: ");
+                        string? indexOrName = Console.ReadLine();
+                        if (indexOrName is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        View.RunCommandRemove(indexOrName);
+                    } else if (choice == "5") {
+                        Console.Write("+ Enter the language (en/fr): ");
+                        string? language = Console.ReadLine();
+                        if (language is null) {
+                            Console.WriteLine("Invalid input.");
+                            continue;
+                        }
+                        View.RunCommandLanguage(language);
+                    } else {
+                        Console.WriteLine("Unknown option.");
                     }
-                    View.RunCommandRun(View.ParseJobList(jobList));
-                } else if (choice == "2") {
-                    Console.Write("+ Enter the name of the backup job: ");
-                    string? name = Console.ReadLine();
-                    if (name is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
-                    }
-                    Console.Write("+ Enter the source path: ");
-                    string? source = Console.ReadLine();
-                    if (source is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
-                    }
-                    Console.Write("+ Enter the destination path: ");
-                    string? destination = Console.ReadLine();
-                    if (destination is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
-                    }
-                    Console.Write("+ Enter the type of backup job: ");
-                    string? type = Console.ReadLine();
-                    if (type is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
-                    }
-                    View.RunCommandAdd(name, source, destination, type);
-                } else if (choice == "3") {
-                    Console.Write("+ Enter the index or name of the backup job to remove: ");
-                    string? indexOrName = Console.ReadLine();
-                    if (indexOrName is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
-                    }
-                    View.RunCommandRemove(indexOrName);
-                } else if (choice == "4") {
-                    Console.Write("+ Enter the language (en/fr): ");
-                    string? language = Console.ReadLine();
-                    if (language is null) {
-                        Console.WriteLine("Invalid input.");
-                        continue;
-                    }
-                    View.RunCommandLanguage(language);
-                } else {
-                    Console.WriteLine("Unknown option.");
+                } catch (Exception e) {
+                    Console.WriteLine("An error occured : " + e.Message);
                 }
+
+                Console.WriteLine("");
             }
         }
     }

@@ -5,10 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json;
 
-namespace EasySave.Model
-{
-    public class JobStateDto
-    {
+namespace EasySave.Model {
+    public class JobStateDto {
         public string Name { get; set; }
         public string SourceFilePath { get; set; }
         public string TargetFilePath { get; set; }
@@ -16,22 +14,22 @@ namespace EasySave.Model
         public double TotalFilesSize { get; set; }
         public double NbFilesLeftToDo { get; set; }
         public int Progression { get; set; }
-        public string State { get; set; } 
+        public string State { get; set; }
     }
-    public interface IStateFile
-    {
+
+    public interface IStateFile {
         public void Save(List<IBackupJobState> jobsState);
         public List<IBackupJobState> Read();
     }
-    public class StateFile : IStateFile
-    {
+
+    public class StateFile(string filePath) : IStateFile {
+        private string FilePath { get; set; } = filePath;
+
         public void Save(List<IBackupJobState> jobsState) {
             var dtoList = new List<JobStateDto>();
- 
-            foreach (var jobstate in jobsState)
-            {
-                var dto = new JobStateDto
-                {
+
+            foreach (var jobstate in jobsState) {
+                var dto = new JobStateDto {
                     Name = jobstate.BackupJob.Name,
                     SourceFilePath = jobstate.SourceFilePath,
                     TargetFilePath = jobstate.DestinationFilePath,
@@ -39,17 +37,16 @@ namespace EasySave.Model
                     TotalFilesSize = jobstate.TotalFilesSize,
                     NbFilesLeftToDo = jobstate.FilesLeft,
                     Progression = jobstate.Progression,
-                    State = jobstate.state.ToString(),
+                    State = jobstate.State.ToString(),
 
                 };
                 dtoList.Add(dto);
             }
             var jsonString = JsonSerializer.Serialize(dtoList, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText("c:\\temp\\state.json", jsonString);
+            File.WriteAllText(this.FilePath, jsonString);
         }
-       
-         public List<IBackupJobState> Read()
-        {
+
+        public List<IBackupJobState> Read() {
             throw new NotImplementedException("This method is not implemented yet");
             /*
             string jsonString = File.ReadAllText("c:\\temp\\state.json");
@@ -83,4 +80,4 @@ namespace EasySave.Model
         }
     }
 }
-    
+

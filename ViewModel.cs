@@ -14,9 +14,6 @@ public class LanguageChangedEventArgs(string language) : EventArgs {
 public class JobStateChangedEventArgs(IBackupJobState jobState) : EventArgs {
     public IBackupJobState? JobState { get; } = jobState;
 }
-public class ConfigurationChangedEventArgs(IConfiguration configuration) : EventArgs {
-    public IConfiguration? Configuration { get; } = configuration;
-}
 
 public delegate void LanguageChangedEventHandler(object sender, LanguageChangedEventArgs e);
 public delegate void JobStateChangedEventHandler(object sender, JobStateChangedEventArgs e);
@@ -78,7 +75,7 @@ public interface IViewModel : INotifyPropertyChanged {
     /// <summary>
     /// Called when the configuration is changed.
     /// </summary>
-    void OnConfigurationChanged();
+    void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e);
 
     /// <summary>
     /// Called when a property is changed.
@@ -91,11 +88,22 @@ public interface IViewModel : INotifyPropertyChanged {
     event ConfigurationChangedEventHandler? ConfigurationChanged;
 }
 
-public class ViewModel() {
+public class ViewModel : IViewModel {
+    public const string CONFIGURATION_PATH = "./configuration.json";
+
     public List<IBackupJob> BackupJobs { get; set; } = [];
-    public IBackupState BackupState { get; set; } = (IBackupState)new BackupState();
-    public ILanguage Language { get; set; } = new Language();
-    public IConfiguration Configuration { get; set; } = new Configuration();
+    public IBackupState? BackupState { get; set; }
+    public ILanguage Language { get; set; }
+    public IConfiguration Configuration { get; set; }
+
+    public ViewModel() {
+        ConfigurationManager configurationManager = new(typeof(ConfigurationJSONFile));
+        this.Configuration = configurationManager.Load(ViewModel.CONFIGURATION_PATH);
+
+        this.Configuration.ConfigurationChanged += this.OnConfigurationChanged;
+
+        this.Language = Model.Language.Instance;
+    }
 
     public void RunCommandRun(List<string> indexOrNameList) {
         List<IBackupJobConfiguration> jobsToRun = [];
@@ -126,7 +134,8 @@ public class ViewModel() {
 
         this.BackupJobs = BackupJobFactory.Create(jobsToRun);
 
-        this.BackupState = (IBackupState)new BackupState();
+        IStateFile file = new StateFile(this.Configuration.StateFile);
+        this.BackupState = (IBackupState)new BackupState(file);
         foreach (IBackupJob job in this.BackupJobs) {
             this.BackupState.CreateJobState(job);
         }
@@ -153,13 +162,18 @@ public class ViewModel() {
         }
 
         // Create a new backup job configuration
-        IBackupJobConfiguration newJob = new BackupJobConfiguration(name, source, destination, type);
+        IBackupJobConfiguration newJob = new BackupJobConfiguration {
+            Name = name,
+            Source = source,
+            Destination = destination,
+            Type = type
+        };
 
         // Add the new job to the configuration
-        this.Configuration.Jobs.Add(newJob);
+        this.Configuration.AddJob(newJob);
     }
     public void RunCommandRemove(string indexOrName) {
-        if (this.BackupJobs.Count == 0) {
+        if (this.Configuration.Jobs.Count == 0) {
             throw new Exception("No backup jobs available.");
         }
 
@@ -167,7 +181,7 @@ public class ViewModel() {
         // Check if the indexOrName is a number
         if (int.TryParse(indexOrName, out int id)) {
             id = id - 1; // Adjust for 0-based index
-            if (id < 0 || id >= this.BackupJobs.Count) {
+            if (id < 0 || id >= this.Configuration.Jobs.Count) {
                 jobToRemove = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
             } else {
                 // Remove the backup job by index
@@ -182,7 +196,7 @@ public class ViewModel() {
         }
 
         // Remove the backup job from the configuration
-        this.Configuration.Jobs.Remove(jobToRemove);
+        this.Configuration.RemoveJob(jobToRemove);
     }
     public void RunCommandLanguage(string language) {
         this.Language.SetLanguage(language);
@@ -195,8 +209,12 @@ public class ViewModel() {
     public void OnJobStateChanged(IBackupJobState jobState) {
         this.JobStateChanged?.Invoke(this, new JobStateChangedEventArgs(jobState));
     }
-    public void OnConfigurationChanged() {
-        this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs(this.Configuration));
+    public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
+        this.ConfigurationChanged?.Invoke(this, e);
+
+        if (e.PropertyName == nameof(IConfiguration.StateFile) && this.BackupState is not null) {
+            this.BackupState.File = new StateFile(this.Configuration.StateFile);
+        }
     }
 
     public void OnPropertyChanged(string propertyName) {

@@ -1,59 +1,118 @@
 using System;
 using System.Collections.Generic;
 
-using static EasySave.Model.IConfigurationManager;
-
 namespace EasySave.Model {
+    public class ConfigurationChangedEventArgs : EventArgs {
+        public string? PropertyName { get; set; }
+    }
+    public delegate void ConfigurationChangedEventHandler(object sender, ConfigurationChangedEventArgs e);
+
     public interface IConfiguration {
-        // Interface for Configuration class
-        /// <summary>
-        /// Singleton instance of Configuration
-        /// </summary>
+        public const string DEFAULT_LANGUAGE = "FR";
+        public const string DEFAULT_STATE_FILE = "state.json";
+
         string Language { get; set; }
-        /// <summary>
-        /// List of backup jobs
-        /// </summary>
+        string StateFile { get; }
         List<IBackupJobConfiguration> Jobs { get; set; }
-        /// <summary>
-        /// Event triggered when the configuration changes
-        /// </summary>
-        void OnJobConfigurationChanged();
-        /// <summary>
-        /// Event triggered when the configuration changes
-        /// </summary>
-        event EventHandler ConfigurationChanged;
+
+        public void AddJob(IBackupJobConfiguration jobConfiguration);
+        public void RemoveJob(IBackupJobConfiguration jobConfiguration);
+
+        event ConfigurationChangedEventHandler ConfigurationChanged;
     }
 
-    public class Configuration : IConfiguration
-    {
-        // Singleton instance of Configuration
-        public static Configuration Instance { get; } = new Configuration();
+    public class Configuration : IConfiguration {
+        public static Configuration? Instance { get; private set; }
 
-        // Private constructor to prevent instantiation from outside
-        private Configuration() { } 
+        private static string? _Language;
+        private static string? _StateFile;
+        private static List<IBackupJobConfiguration>? _Jobs;
 
-        public static Configuration Init(string language , List<IBackupJobConfiguration> Jobs)
-        {
-            //Verify if the configuration is already initialized
-            if (Instance != null)
-            {
+        public string Language {
+            get => _Language ?? IConfiguration.DEFAULT_LANGUAGE;
+            set {
+                _Language = value;
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    PropertyName = nameof(Language)
+                });
+            }
+        }
+        public string StateFile {
+            get => _StateFile ?? throw new InvalidOperationException("State file is not set");
+            set {
+                _StateFile = value;
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    PropertyName = nameof(StateFile)
+                });
+            }
+        }
+        public List<IBackupJobConfiguration> Jobs {
+            get => _Jobs ?? [];
+            set {
+                _Jobs = value;
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    PropertyName = nameof(Jobs)
+                });
+            }
+        }
+
+        public Configuration() {
+            if (Configuration.Instance != null) {
                 throw new InvalidOperationException("Configuration is already initialized.");
             }
-            // Initialize the configuration with the provided language and jobs
-            Configuration configuration = new Configuration();
-            configuration.Language = language;
-            configuration.Jobs = Jobs;
-            return configuration;
+
+            Configuration.Instance = this;
         }
 
-        // Properties
-        public string Language { get; set; } = string.Empty; 
-        public List<IBackupJobConfiguration> Jobs { get; set; }
-        public event EventHandler ConfigurationChanged = delegate { }; 
-        
-        public void OnJobConfigurationChanged()
-        {
-            ConfigurationChanged?.Invoke(this, EventArgs.Empty);
+        public Configuration(object configuration) {
+            if (Configuration.Instance != null) {
+                throw new InvalidOperationException("Configuration is already initialized.");
+            }
+
+            if (configuration.GetType().GetProperty("Language") is not null) {
+                this.Language = configuration.GetType().GetProperty("Language")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_LANGUAGE;
+            }
+            if (configuration.GetType().GetProperty("StateFile") is not null) {
+                this.StateFile = configuration.GetType().GetProperty("StateFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
+            }
+            if (configuration.GetType().GetProperty("Jobs") is not null) {
+                this.Jobs = configuration.GetType().GetProperty("Jobs")?.GetValue(configuration) as List<IBackupJobConfiguration> ?? [];
+            } else {
+                this.Jobs = [];
+            }
+
+            foreach (IBackupJobConfiguration jobConfiguration in this.Jobs) {
+                jobConfiguration.JobConfigurationChanged += (sender, args) => {
+                    this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                        PropertyName = nameof(Jobs)
+                    });
+                };
+            }
+
+            Configuration.Instance = this;
         }
+
+        public void AddJob(IBackupJobConfiguration jobConfiguration) {
+            this.Jobs.Add(jobConfiguration);
+
+            jobConfiguration.JobConfigurationChanged += (sender, args) => {
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    PropertyName = nameof(Jobs)
+                });
+            };
+
+            this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                PropertyName = nameof(Jobs)
+            });
+        }
+
+        public void RemoveJob(IBackupJobConfiguration jobConfiguration) {
+            this.Jobs.Remove(jobConfiguration);
+            this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                PropertyName = nameof(Jobs)
+            });
+        }
+
+        public event ConfigurationChangedEventHandler? ConfigurationChanged;
     }
 }
