@@ -77,7 +77,7 @@ public abstract class EntryHandler(string path) : IEntryHandler {
 
     public string GetPath() {
         return _Path;
-    }
+}
 
     public abstract string GetName();
     

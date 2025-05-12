@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -113,7 +113,7 @@ public class FileHandler(string path) : EntryHandler(path), IFileHandler {
 
     public override IDirectoryHandler GetParent() {
         return new DirectoryHandler(Path.GetDirectoryName(this._Path)!);
-    }
+}
 
     public DateTime GetLastModified() {
         if (!this.Exists()) {
