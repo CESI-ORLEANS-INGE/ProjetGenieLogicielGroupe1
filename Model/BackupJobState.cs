@@ -50,7 +50,7 @@ namespace EasySave.Model {
             SourceFilePath = backupJob.Source.GetPath();
             DestinationFilePath = backupJob.Destination.GetPath();
             TotalFilesToCopy = backupJob.Tasks.Count;
-            //TotalFilesSize = backupJob.Tasks.Sum(t => t.FileSize) ?? 0; 
+            TotalFilesSize = backupJob.Tasks.Where( t => t is BackupCopyTask).Sum(t => t.Source?.GetSize() ?? 0); 
             FilesLeft = TotalFilesToCopy;
             FilesLeftSize = TotalFilesSize;
             Progression = 0;

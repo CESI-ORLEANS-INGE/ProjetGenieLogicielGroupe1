@@ -23,16 +23,16 @@ namespace EasySave.Model
         public void Save(List<IBackupJobState> jobsState);
         public List<IBackupJobState> Read();
     }
-    public class StateFile 
+    public class StateFile : IStateFile
     {
         public void Save(List<IBackupJobState> jobsState) {
             var dtoList = new List<JobStateDto>();
-            IBackupJob jobname = new BackupJob();
+ 
             foreach (var jobstate in jobsState)
             {
                 var dto = new JobStateDto
                 {
-                    Name = jobname.Name,
+                    Name = jobstate.BackupJob.Name,
                     SourceFilePath = jobstate.SourceFilePath,
                     TargetFilePath = jobstate.DestinationFilePath,
                     TotalFilesToCopy = jobstate.TotalFilesToCopy,
@@ -47,8 +47,10 @@ namespace EasySave.Model
             var jsonString = JsonSerializer.Serialize(dtoList, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText("c:\\temp\\state.json", jsonString);
         }
-        public List<IBackupJobState> Read()
+       
+         public List<IBackupJobState> Read()
         {
+            throw new NotImplementedException("This method is not implemented yet");
             string jsonString = File.ReadAllText("c:\\temp\\state.json");
 
             var dtoList = JsonSerializer.Deserialize<List<JobStateDto>>(jsonString);
