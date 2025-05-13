@@ -16,8 +16,8 @@ public class BackupCopyTask : BackupTask {
         }
     }
 
-    public override void Run() {
-        this.Source!.Copy(this.Destination!.GetParent());
+    protected override void Algorithm() {
+        this.Source!.Copy(this.Destination!.GetParent(), true);
     }
 }
 

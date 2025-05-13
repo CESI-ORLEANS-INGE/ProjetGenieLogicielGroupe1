@@ -6,12 +6,13 @@ using System.Text.Json.Nodes;
 namespace EasySave.Model;
 
 public interface IConfigurationManager {
+    static IConfigurationManager? Instance { get; }
     IConfiguration Load(string filePath);
     void Save(string filePath, IConfiguration configuration);
 }
 
 public class ConfigurationManager : IConfigurationManager {
-    private static ConfigurationManager? Instance;
+    public static ConfigurationManager? Instance { get; private set; }
     private readonly Type Loader;
     public IConfiguration? Configuration { get; set; }
 

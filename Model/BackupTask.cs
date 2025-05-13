@@ -53,6 +53,12 @@ public abstract class BackupTask(IEntryHandler? source, IEntryHandler? destinati
         return (EndTime - StartTime).Value.TotalMilliseconds;
     }
 
-    public abstract void Run();
+    public void Run() {
+        this.StartTime = DateTime.Now;
+        this.Algorithm();
+        this.EndTime = DateTime.Now;
+    }
+
+    protected abstract void Algorithm();
 } 
 

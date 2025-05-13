@@ -43,7 +43,7 @@ namespace EasySave.Model {
     /// Represents the state of a backup job at a given time.
     /// Tracks progress, size, and lifecycle events.
     /// </summary>
-    public interface IBackupJobState {
+    public interface IBackupJobState : IDisposable {
         /// <summary>
         /// The backup job associated with this state instance.
         /// </summary>
@@ -90,7 +90,7 @@ namespace EasySave.Model {
         /// Called when progress is made in the backup job.
         /// Used to update progress and remaining files.
         /// </summary>
-        public void OnJobProgress(object sender, BackupJobEventArgs e);
+        public void OnJobProgress(object sender, BackupJobProgressEventArgs e);
         /// <summary>
         /// Called when the job is paused.
         /// </summary>
@@ -107,15 +107,12 @@ namespace EasySave.Model {
         /// Called when the job is cancelled by the user or system.
         /// </summary>
         public void OnJobCancelled(object sender, BackupJobEventArgs e);
+
         /// <summary>
         /// Event triggered whenever the state of the job changes.
         /// This can be used for saving state or updating the UI.
         /// </summary>
-        public event EventHandler<IJobStateChangedEventArgs> JobStateChanged;
-    }
-    public class IJobStateChangedEventArgs : EventArgs {
-        public string? JobName { get; set; }
-        public State NewState { get; set; }
+        public event JobStateChangedEventHandler JobStateChanged;
     }
 
     public class BackupJobState : IBackupJobState {
@@ -131,38 +128,15 @@ namespace EasySave.Model {
 
         public BackupJobState(IBackupJob backupJob) {
             this.BackupJob = backupJob;
-            /// <summary>
-            /// Sets the source file path using the backup job's source directory.
-            /// </summary>
             this.SourceFilePath = backupJob.Source.GetPath();
-            /// <summary>
-            /// Sets the destination file path using the backup job's destination directory.
-            /// </summary>
             this.DestinationFilePath = backupJob.Destination.GetPath();
-            /// <summary>
-            /// Calculates the total number of files to copy based on the number of tasks.
-            /// </summary>
-            this.TotalFilesToCopy = backupJob.Tasks.Count;
-            /// <summary>
-            /// Calculates the total size of files to copy, summing only the sizes of BackupCopyTask instances.
-            /// </summary>
-            this.TotalFilesSize = backupJob.Tasks.Where(t => t is BackupCopyTask).Sum(t => t.Source?.GetSize() ?? 0);
-            /// <summary>
-            /// Initializes the remaining files count to the total number of files.
-            /// </summary>
+            List<BackupCopyTask> tasks = [.. backupJob.Tasks.OfType<BackupCopyTask>()];
+            this.TotalFilesToCopy = tasks.Count;
+            this.TotalFilesSize = tasks.Sum(t => t.Source?.GetSize() ?? 0);
             this.FilesLeft = TotalFilesToCopy;
-            /// <summary>
-            /// Initializes the remaining size to the total size of the files to copy.
-            /// </summary>
             this.FilesLeftSize = TotalFilesSize;
-            /// <summary>
-            /// Initializes the progression percentage to 0 at the start of the job.
-            /// </summary>
             this.Progression = 0;
 
-            /// <summary>
-            /// Subscribes to backup job events to track and update state changes.
-            /// </summary>
             backupJob.BackupJobStarted += OnJobStarted;
             backupJob.BackupJobProgress += OnJobProgress;
             backupJob.BackupJobPaused += OnJobPaused;
@@ -170,43 +144,68 @@ namespace EasySave.Model {
             backupJob.BackupJobFinished += OnJobFinished;
             backupJob.BackupJobCancelled += OnJobCancelled;
         }
-        // <summary>
+
+        /// <summary>
         /// Raises the <c>JobStateChanged</c> event to notify subscribers of a state change in the backup job.
         /// This is typically called after a change in job progress, pause, resume, finish, or cancellation.
         /// </summary>
         private void RaiseStateChanged() {
-            JobStateChanged?.Invoke(this, new IJobStateChangedEventArgs {
-                JobName = BackupJob.Name,
-                NewState = this.State
-            });
+            this.JobStateChanged?.Invoke(this, new JobStateChangedEventArgs(this)) ;
         }
      
         public void OnJobStarted(object sender, BackupJobEventArgs e) {
-
-            State = State.ACTIVE;
-            RaiseStateChanged();
+            this.State = State.ACTIVE;
+            this.RaiseStateChanged();
         }
-        public void OnJobProgress(object sender, BackupJobEventArgs e) {
-            State = State.IN_PROGRESS;
-            RaiseStateChanged();
+        public void OnJobProgress(object sender, BackupJobProgressEventArgs e) {
+            this.State = State.IN_PROGRESS;
+            
+            IBackupTask task = this.BackupJob.Tasks[e.CurrentTask];
+            if (task is BackupCopyTask copyTask) {
+                this.FilesLeft--;
+                this.FilesLeftSize -= copyTask.Source?.GetSize() ?? 0;
+            }
+
+            this.SourceFilePath = task.Source?.GetPath() ?? string.Empty;
+            this.DestinationFilePath = task.Destination?.GetPath() ?? string.Empty;
+            this.Progression = (int)((this.TotalFilesToCopy - this.FilesLeft) / this.TotalFilesToCopy * 100);
+
+            this.RaiseStateChanged();
         }
         public void OnJobPaused(object sender, BackupJobEventArgs e) {
-            State = State.BREAK;
-            RaiseStateChanged();
+            this.State = State.BREAK;
+            this.RaiseStateChanged();
         }
         public void OnJobResumed(object sender, BackupJobEventArgs e) {
-            State = State.RESUMED;
-            RaiseStateChanged();
+            this.State = State.RESUMED;
+            this.RaiseStateChanged();
         }
         public void OnJobFinished(object sender, BackupJobEventArgs e) {
-            State = State.END;
-            RaiseStateChanged();
+            this.State = State.END;
+            this.RaiseStateChanged();
         }
         public void OnJobCancelled(object sender, BackupJobEventArgs e) {
-            State = State.ERROR;
-            RaiseStateChanged();
+            this.State = State.ERROR;
+            this.RaiseStateChanged();
         }
-        public event EventHandler<IJobStateChangedEventArgs>? JobStateChanged;
+
+        public void Dispose() {
+            this.BackupJob.BackupJobStarted -= this.OnJobStarted;
+            this.BackupJob.BackupJobProgress -= this.OnJobProgress;
+            this.BackupJob.BackupJobPaused -= this.OnJobPaused;
+            this.BackupJob.BackupJobResumed -= this.OnJobResumed;
+            this.BackupJob.BackupJobFinished -= this.OnJobFinished;
+            this.BackupJob.BackupJobCancelled -= this.OnJobCancelled;
+            this.BackupJob = null!;
+
+            GC.SuppressFinalize(this);
+        }
+
+        ~BackupJobState() {
+            Dispose();
+        }
+
+        public event JobStateChangedEventHandler? JobStateChanged;
 
     }
 

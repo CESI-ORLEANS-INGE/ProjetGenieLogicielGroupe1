@@ -68,8 +68,7 @@ public interface IViewModel : INotifyPropertyChanged {
     /// <summary>
     /// Called when the job state is changed.
     /// </summary>
-    /// <param name="jobState">The new job state.</param>
-    void OnJobStateChanged(IBackupJobState jobState);
+    void OnJobStateChanged(object sender, JobStateChangedEventArgs e);
 
     /// <summary>
     /// Called when the configuration is changed.
@@ -113,7 +112,7 @@ public class ViewModel : IViewModel {
             // Check if the indexOrName is a number
             if (int.TryParse(indexOrName, out int id)) {
                 id = id - 1; // Adjust for 0-based index
-                if (id < 0 || id >= this.BackupJobs.Count) {
+                if (id < 0 || id >= this.Configuration.Jobs.Count) {
                     throw new Exception($"No backup job found with index: {indexOrName}");
                 } else {
                     jobsToRun.Add(this.Configuration.Jobs[id]);
@@ -136,13 +135,12 @@ public class ViewModel : IViewModel {
         this.BackupJobs = BackupJobFactory.Create(jobsToRun);
 
         IStateFile file = new StateFile(this.Configuration.StateFile);
-        this.BackupState = (IBackupState)new BackupState(file);
-        foreach (IBackupJob job in this.BackupJobs) {
-            this.BackupState.CreateJobState(job);
-        }
+        using (this.BackupState = new BackupState(file))
+        this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
         foreach (IBackupJob job in this.BackupJobs) {
             job.Analyze();
+            this.BackupState.CreateJobState(job);
         }
 
         foreach (IBackupJob job in this.BackupJobs) {
@@ -150,6 +148,10 @@ public class ViewModel : IViewModel {
         }
     }
     public void RunCommandAdd(string name, string source, string destination, string type) {
+        if (this.Configuration.Jobs.Count >= 5) {
+            throw new Exception("Maximum number of backup jobs reached (5).");
+        }
+        
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
             throw new Exception($"A backup job with the name '{name}' already exists.");
         }
@@ -207,8 +209,8 @@ public class ViewModel : IViewModel {
     public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
         this.LanguageChanged?.Invoke(this, e);
     }
-    public void OnJobStateChanged(IBackupJobState jobState) {
-        this.JobStateChanged?.Invoke(this, new JobStateChangedEventArgs(jobState));
+    public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
+        this.JobStateChanged?.Invoke(this, e);
     }
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, e);

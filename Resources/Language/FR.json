@@ -25,5 +25,10 @@
   "LANGUAGE_CHANGED": "Langue changée",
   "JOB_STATE_CHANGED": "État du travail changé",
   "STATE": "État",
-  "CONFIGURATION_CHANGED": "Configuration changée"
+  "CONFIGURATION_CHANGED": "Configuration changée",
+  "JOB_STATE_STARTED": "Démarrage de la tâche de sauvegarde",
+  "JOB_STATE_IN_PROGRESS": "Tâche de sauvegarde en cours",
+  "JOB_STATE_ENDED": "Tâche de sauvegarde terminée",
+  "MENU_OPTION_CONFIGURATION": "Afficher la configuration",
+  "MENU_OPTION_RELOAD": "Recharger la configuration"
 }

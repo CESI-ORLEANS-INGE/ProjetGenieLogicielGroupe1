@@ -25,5 +25,10 @@
   "LANGUAGE_CHANGED": "Language changed",
   "JOB_STATE_CHANGED": "Job state changed",
   "STATE": "State",
-  "CONFIGURATION_CHANGED": "Configuration changed"
+  "CONFIGURATION_CHANGED": "Configuration changed",
+  "JOB_STATE_STARTED": "Backup job started",
+  "JOB_STATE_IN_PROGRESS": "Backup job in progress",
+  "JOB_STATE_ENDED": "Backup job completed",
+  "MENU_OPTION_CONFIGURATION": "Show configuration",
+  "MENU_OPTION_RELOAD": "Reload configuration",
 }

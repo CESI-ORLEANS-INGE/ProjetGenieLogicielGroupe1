@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EasySave.Model;
 
-public interface IBackupState {
+public interface IBackupState : IDisposable {
     /// <summary>
     /// Gets or sets the file responsible for saving the state.
     /// </summary>
@@ -24,39 +24,37 @@ public interface IBackupState {
     /// <summary>
     /// Called when any job state changes to persist the updated state.
     /// </summary>
-    public void OnJobStateChanged();
+    public void OnJobStateChanged(object sender, JobStateChangedEventArgs e);
+
+    public event JobStateChangedEventHandler JobStateChanged;
 }
 
 /// <summary>
 /// Singleton class that manages backup job states and persists them.
 /// </summary>
-public class BackupState : IBackupState {
-    /// <summary>
-    /// Provides access to the singleton instance of BackupState.
-    /// </summary>
-    private static BackupState? Instance;
-
-    public IStateFile File { get; set; }
+public class BackupState(IStateFile file) : IBackupState {
+    public IStateFile File { get; set; } = file;
     public List<IBackupJobState> JobState { get; set; } = [];
 
-    public BackupState(IStateFile file) {
-        if (BackupState.Instance != null) {
-            throw new InvalidOperationException("BackupState is a singleton. Use Instance property to access it.");
-        }
-
-        this.File = file;
-
-        BackupState.Instance = this;
-    }
-
-    public void OnJobStateChanged() {
+    public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
         this.File?.Save(JobState);
+        this.JobStateChanged?.Invoke(this, e);
     }
+
     public IBackupJobState CreateJobState(IBackupJob backupJob) {
         IBackupJobState backupJobState = new BackupJobState(backupJob);
         JobState.Add(backupJobState);
-        backupJobState.JobStateChanged += (sender, args) => OnJobStateChanged();
+        backupJobState.JobStateChanged += this.OnJobStateChanged;
         return backupJobState;
     }
 
+    public void Dispose() {
+        for (int i = 0; i < JobState.Count; i++) {
+            JobState[i].Dispose();
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
+    public event JobStateChangedEventHandler? JobStateChanged;
 }

@@ -13,7 +13,7 @@ public class BackupRemoveTask : BackupTask {
         }
     }
 
-    public override void Run() {
+    protected override void Algorithm() {
         this.Destination!.Remove();
     }
 }

@@ -139,7 +139,7 @@ public class DirectoryHandler(string path) : EntryHandler(path), IDirectoryHandl
         if (!this.Exists()) {
             throw new DirectoryNotFoundException("Directory not found");
         }
-        return this.GetEntries().Any(e => e.GetPath() == entry.GetPath());
+        return this.GetEntries().Any(e => e.GetName() == entry.GetName());
     }
 }
 
