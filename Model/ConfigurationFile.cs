@@ -3,59 +3,83 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using static EasySave.Model.IConfigurationManager;
 
-namespace EasySave.Model {
-    public interface IConfigurationFile 
-    {
-        // Interface for ConfigurationFile class
-        /// <summary>
-        /// Save the configuration to a file
-        /// </summary>
-        /// <param name="configuration"></param>
-        void Save(JsonArray configuration);
+namespace EasySave.Model;
 
-        /// <summary>
-        /// Read the configuration from a file
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
-        JsonArray Read(string path);
+public interface IConfigurationFile {
+    void Save(IConfiguration configuration);
+    IConfiguration Read();
+}
+
+public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
+    private string FilePath { get; set; } = filePath;
+
+    public void Save(IConfiguration configuration) {
+        var jsonObject = new JsonObject {
+            ["Language"] = configuration.Language,
+            ["Jobs"] = new JsonArray([.. configuration.Jobs.Select(j => new JsonObject {
+                ["Name"] = j.Name,
+                ["Source"] = j.Source,
+                ["Destination"] = j.Destination,
+                ["Type"] = j.Type
+            })])
+        };
+
+        string jsonString = jsonObject.ToJsonString(new JsonSerializerOptions {
+            WriteIndented = true
+        });
+
+        using StreamWriter writer = new(this.FilePath);
+        writer.Write(jsonString);
     }
 
-    public class ConfigurationFile : IConfigurationFile
-    {
-        public void Save(JsonArray configuration)
-        {
-
-            // Convert JsonArray to JsonDocument
-            JsonDocument jsonDocument = JsonDocument.Parse(configuration.ToString());
-            // save the json document to a file
-            string jsonString = jsonDocument.RootElement.ToString();
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "EasySave", "configuration.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(path));
-            File.WriteAllText(path, jsonString);
-            // Display a message indicating that the configuration has been saved
-            Console.WriteLine("Configuration saved.");
+    public IConfiguration Read() {
+        bool isNew = false;
+        if (!File.Exists(this.FilePath)) {
+            using StreamWriter writer = new(this.FilePath);
+            writer.Write("{}");
+            isNew = true;
         }
 
-        public JsonArray Read(string path)
-        {
-            Console.WriteLine($"Reading configuration from {path}");
-            string json = File.ReadAllText(path);
-            // Parse the JSON string into a JsonNode
-            JsonNode? jsonNode = JsonNode.Parse(json);
-            // Check if the parsed JSON is a JsonArray
-            if (jsonNode is JsonArray jsonArray)
-            {
-                // Successfully parsed as JsonArray
-                return jsonArray;
+        string json = File.ReadAllText(this.FilePath);
+        JsonNode? jsonNode = JsonNode.Parse(json);
+
+        if (jsonNode is JsonObject jsonObject) {
+            string language = jsonObject["Language"]?.ToString() ?? IConfiguration.DEFAULT_LANGUAGE;
+            string stateFile = jsonObject["StateFile"]?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
+
+            List<IBackupJobConfiguration> jobs = [];
+            if (jsonObject["Jobs"] is JsonArray jobsArray) {
+                for (int i = 0; i < jobsArray.Count; i++) {
+                    JsonNode? job = jobsArray[i];
+                    if (job is JsonObject jobObject) {
+                        jobs.Add(new BackupJobConfiguration {
+                            Name = jobObject["Name"]?.ToString() ??
+                                throw new InvalidOperationException($"Missing name in configuration for job at position {i}"),
+                            Source = jobObject["Source"]?.ToString() ??
+                                throw new InvalidOperationException($"Missing source in configuration for job: {jobObject["Name"]?.ToString()}"),
+                            Destination = jobObject["Destination"]?.ToString() ??
+                                throw new InvalidOperationException($"Missing destination in configuration for job: {jobObject["Name"]?.ToString()}"),
+                            Type = jobObject["Type"]?.ToString() ??
+                                throw new InvalidOperationException($"Missing job type in configuration for job: {jobObject["Name"]?.ToString()}")
+                        });
+                    }
+                }
             }
-            else
-            {
-                // Handle the case where the JSON is not a JsonArray
-                throw new InvalidOperationException("The JSON content is not a valid JsonArray.");
+
+            IConfiguration configuration = new Configuration(new {
+                Language = language,
+                StateFile = stateFile,
+                Jobs = jobs
+            });
+
+            if (isNew) {
+                this.Save(configuration);
             }
+
+            return configuration;
+        } else {
+            throw new InvalidOperationException("The JSON content is not a valid JsonObject.");
         }
     }
 }

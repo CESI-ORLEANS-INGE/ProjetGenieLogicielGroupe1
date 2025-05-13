@@ -16,7 +16,7 @@ public class BackupRenameTask : BackupTask {
         }
     }
 
-    public override void Run() {
+    protected override void Algorithm() {
         this.Destination!.Rename(this.Source!.GetName());
     }
 }

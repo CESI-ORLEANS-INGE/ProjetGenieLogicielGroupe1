@@ -74,7 +74,7 @@ public class FileHandler(string path) : EntryHandler(path), IFileHandler {
             if (destinationFile.Exists() && !forceOverride) {
                 throw new IOException("File already exists");
             }
-            File.Copy(this._Path, destinationFile.GetPath());
+            File.Copy(this._Path, destinationFile.GetPath(), true);
         } else {
             throw new FileNotFoundException("File not found");
         }

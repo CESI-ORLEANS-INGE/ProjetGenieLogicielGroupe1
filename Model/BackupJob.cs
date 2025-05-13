@@ -9,8 +9,8 @@ namespace EasySave.Model;
 public class BackupJobEventArgs(string jobName) : EventArgs {
     public string? JobName { get; } = jobName;
 }
-public class BackupJobProgressEventArgs(string jobName, int progress) : BackupJobEventArgs(jobName) {
-    public int? Progress { get; } = progress;
+public class BackupJobProgressEventArgs(string jobName, int taskIndex) : BackupJobEventArgs(jobName) {
+    public int CurrentTask { get; } = taskIndex;
 }
 public class BackupJobErrorEventArgs(string jobName, string errorMesssage) : BackupJobEventArgs(jobName) {
     public string? ErrorMessage { get; } = errorMesssage;
@@ -115,7 +115,7 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
             try {
                 task.Run();
                 task.EndTime = DateTime.Now;
-                this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, (int)((this.CurrentTask + 1) * 100 / Tasks.Count)));
+                this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTask));
             } catch (Exception ex) {
                 this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
                 return;
