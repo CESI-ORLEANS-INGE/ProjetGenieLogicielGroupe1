@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 namespace EasySave;
 
 public class LanguageChangedEventArgs(string language) : EventArgs {
-    public string? Language { get; } = language;
+    public string? Language { get; set; } = language;
 }
 public class JobStateChangedEventArgs(IBackupJobState jobState) : EventArgs {
-    public IBackupJobState? JobState { get; } = jobState;
+    public IBackupJobState? JobState { get; set; } = jobState;
 }
 
 public delegate void LanguageChangedEventHandler(object sender, LanguageChangedEventArgs e);
@@ -63,8 +63,7 @@ public interface IViewModel : INotifyPropertyChanged {
     /// <summary>
     /// Called when the language is changed.
     /// </summary>
-    /// <param name="language">The new language.</param>
-    void OnLanguageChanged(string language);
+    void OnLanguageChanged(object sender, LanguageChangedEventArgs e);
 
     /// <summary>
     /// Called when the job state is changed.
@@ -103,6 +102,8 @@ public class ViewModel : IViewModel {
         this.Configuration.ConfigurationChanged += this.OnConfigurationChanged;
 
         this.Language = Model.Language.Instance;
+        this.Language.LanguageChanged += this.OnLanguageChanged;
+        this.Language.Load();
     }
 
     public void RunCommandRun(List<string> indexOrNameList) {
@@ -203,8 +204,8 @@ public class ViewModel : IViewModel {
     }
 
 
-    public void OnLanguageChanged(string language) {
-        this.LanguageChanged?.Invoke(this, new LanguageChangedEventArgs(language));
+    public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
+        this.LanguageChanged?.Invoke(this, e);
     }
     public void OnJobStateChanged(IBackupJobState jobState) {
         this.JobStateChanged?.Invoke(this, new JobStateChangedEventArgs(jobState));

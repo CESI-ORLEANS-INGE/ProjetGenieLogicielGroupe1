@@ -39,4 +39,13 @@
     <Folder Include="Resources\Language\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\Language\EN.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Language\FR.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

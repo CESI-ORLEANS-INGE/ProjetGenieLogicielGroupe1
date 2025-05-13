@@ -1,3 +1,9 @@
 {
-  "KEY": "Value"
+  "MENU_OPTION_LIST": "List of backup jobs",
+  "MENU_OPTION_RUN": "Run one or more backup jobs",
+  "MENU_OPTION_ADD": "Add a backup job",
+  "MENU_OPTION_REMOVE": "Remove a backup job",
+  "MENU_OPTION_LANGUAGE": "Change the language",
+  "MENU_CHOICE": "Choose an option",
+  "LANGUAGE_INPUT": "Choose a language"
 }

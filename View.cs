@@ -103,84 +103,96 @@ public class View : IView {
                     View.RunCommandLanguage(args[1]);
                     break;
                 default:
-                    Console.WriteLine("Unknown command.");
+                    Console.WriteLine(Language.Instance.Translations["UNKNOWN_COMMAND"]);
                     break;
             }
         } else {
             while (true) {
-                Console.WriteLine("+----------------------------------+");
-                Console.WriteLine("|       EasySave Application       |");
-                Console.WriteLine("+----------------------------------+");
-                Console.WriteLine("| 1. List Backup Jobs              |");
-                Console.WriteLine("| 2. Run Backup Job                |");
-                Console.WriteLine("| 3. Add Backup Job                |");
-                Console.WriteLine("| 4. Remove Backup Job             |");
-                Console.WriteLine("| 5. Change Language               |");
-                Console.WriteLine("+----------------------------------+");
-                Console.Write("+ Choose an option: ");
+                Console.WriteLine("+----------------------------------------------------+");
+                Console.WriteLine("|                 EasySave Application               |");
+                Console.WriteLine("+----------------------------------------------------+");
+                Console.WriteLine("| 1. " + Language.Instance.Translations["MENU_OPTION_LIST"].PadRight(48) + '|');
+                Console.WriteLine("| 2. " + Language.Instance.Translations["MENU_OPTION_RUN"].PadRight(48) + '|');
+                Console.WriteLine("| 3. " + Language.Instance.Translations["MENU_OPTION_ADD"].PadRight(48) + '|');
+                Console.WriteLine("| 4. " + Language.Instance.Translations["MENU_OPTION_REMOVE"].PadRight(48) + '|');
+                Console.WriteLine("| 5. " + Language.Instance.Translations["MENU_OPTION_LANGUAGE"].PadRight(48) + '|');
+                Console.WriteLine("+----------------------------------------------------+");
+                Console.Write("+ " + Language.Instance.Translations["MENU_CHOICE"] + ": ");
                 string? choice = Console.ReadLine();
+                Console.WriteLine(string.Empty);
 
                 try {
                     if (choice == "1") {
                         View.RunCommandList();
                     } else if (choice == "2") {
-                        Console.Write("+ Enter the index or name of the backup job to run: ");
+                        Console.Write("+ " + Language.Instance.Translations["RUN_INPUT"] + ": ");
                         string? jobList = Console.ReadLine();
                         if (jobList is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
                             continue;
                         }
                         View.RunCommandRun(View.ParseJobList(jobList));
                     } else if (choice == "3") {
-                        Console.Write("+ Enter the name of the backup job: ");
+                        Console.Write("+ " + Language.Instance.Translations["ADD_NAME_INPUT"] + ": ");
                         string? name = Console.ReadLine();
                         if (name is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
                             continue;
                         }
-                        Console.Write("+ Enter the source path: ");
+                        Console.Write("+ " + Language.Instance.Translations["ADD_SOURCE_INPUT"] + ": ");
                         string? source = Console.ReadLine();
                         if (source is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
                             continue;
                         }
-                        Console.Write("+ Enter the destination path: ");
+                        Console.Write("+ " + Language.Instance.Translations["ADD_DESTINATION_INPUT"] + ": ");
                         string? destination = Console.ReadLine();
                         if (destination is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
                             continue;
                         }
-                        Console.Write("+ Enter the type of backup job: ");
+                        Console.Write("+ " + Language.Instance.Translations["ADD_TYPE_INPUT"] + ": ");
                         string? type = Console.ReadLine();
                         if (type is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
                             continue;
                         }
                         View.RunCommandAdd(name, source, destination, type);
                     } else if (choice == "4") {
-                        Console.Write("+ Enter the index or name of the backup job to remove: ");
+                        Console.Write("+ " + Language.Instance.Translations["REMOVE_INPUT"] + ": ");
                         string? indexOrName = Console.ReadLine();
                         if (indexOrName is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
                             continue;
                         }
                         View.RunCommandRemove(indexOrName);
                     } else if (choice == "5") {
-                        Console.Write("+ Enter the language (en/fr): ");
+                        List<string> availableLanguages = Language.Instance.GetAvailableLanguages();
+                        Console.Write(
+                            "+ " +
+                            Language.Instance.Translations["LANGUAGE_INPUT"] +
+                            " (" +
+                            availableLanguages.Aggregate((a, b) => a + ", " + b) +
+                            "): "
+                        );
                         string? language = Console.ReadLine();
                         if (language is null) {
-                            Console.WriteLine("Invalid input.");
+                            Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                            continue;
+                        }
+                        if (!availableLanguages.Contains(language)) {
+                            Console.WriteLine(Language.Instance.Translations["LANGUAGE_NOT_FOUND"]);
                             continue;
                         }
                         View.RunCommandLanguage(language);
                     } else {
-                        Console.WriteLine("Unknown option.");
+                        Console.WriteLine(Language.Instance.Translations["UNKNOWN_OPTION"]);
                     }
                 } catch (Exception e) {
-                    Console.WriteLine("An error occured : " + e.Message);
+                    Console.WriteLine(Language.Instance.Translations["ERROR_OCCURRED"] + ": " + e.Message);
                 }
 
-                Console.WriteLine("");
+                Console.WriteLine(string.Empty);
             }
         }
     }
@@ -196,7 +208,7 @@ public class View : IView {
                             indexOrNameList.Add(index);
                         }
                     } else {
-                        throw new Exception($"Invalid index: {index}");
+                        throw new Exception(Language.Instance.Translations["INVALID_INPUT"] + ": " + (string)index);
                     }
                 }
             } else {
@@ -217,8 +229,11 @@ public class View : IView {
         if (View.ViewModel is null) {
             throw new Exception("ViewModel is not initialized.");
         }
-        foreach (IBackupJobConfiguration job in View.ViewModel.Configuration.Jobs) {
-            Console.WriteLine($"Name: {job.Name}, Source: {job.Source}, Destination: {job.Destination}, Type: {job.Type}");
+        for (int i = 0; i < View.ViewModel.Configuration.Jobs.Count; i++) {
+            IBackupJobConfiguration job = View.ViewModel.Configuration.Jobs[i];
+            //Console.WriteLine($"Name: {job.Name}, Source: {job.Source}, Destination: {job.Destination}, Type: {job.Type}");
+            Console.WriteLine(i + 1 + ". " + Language.Instance.Translations["JOB_NAME"] + ": " + job.Name);
+            Console.
         }
     }
 

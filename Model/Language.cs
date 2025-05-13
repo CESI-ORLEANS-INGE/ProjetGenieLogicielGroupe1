@@ -13,14 +13,12 @@ public interface ILanguage {
     /// <summary>
     /// Dictionary containing the translations for the language
     /// </summary>
-    public Dictionary<string, string> Traductions { get; set; }
-
+    public Dictionary<string, string> Translations { get; set; }
     /// <summary>
     /// Current language
     /// </summary>
     /// <param name="language"></param>
     void SetLanguage(string language);
-
     /// <summary>
     /// Get the current language
     /// </summary>
@@ -30,7 +28,12 @@ public interface ILanguage {
     /// Load the language from the file
     /// </summary>
     void Load();
-    event EventHandler LanguageChanged;
+    /// <summary>
+    /// Returns the language available in the application
+    /// </summary>
+    List<string> GetAvailableLanguages();
+
+    event LanguageChangedEventHandler LanguageChanged;
 }
 
 public class Language : ILanguage {
@@ -38,15 +41,16 @@ public class Language : ILanguage {
     public static Language Instance { get; } = new Language();
     // Private constructor to prevent instantiation from outside
     private Language() { }
-    public Dictionary<string, string> Traductions { get; set; } = [];
+    public Dictionary<string, string> Translations { get; set; } = [];
 
 
     // Initialize the event with an empty delegate to avoid null issues  
-    public event EventHandler LanguageChanged = delegate { };
+    public event LanguageChangedEventHandler LanguageChanged = delegate { };
 
     public void SetLanguage(string _language) {
         Configuration.Instance!.Language = _language;
-        OnLanguageChanged();
+        this.Load();
+        this.OnLanguageChanged();
     }
 
     public string GetLanguage() {
@@ -61,11 +65,35 @@ public class Language : ILanguage {
         // Deserialize the json file into a Dictionary<string, string>
         // and assign it to the Traductions property
 
+        if (!File.Exists($"Resources/Language/{Configuration.Instance!.Language}.json")) {
+            if (Configuration.Instance!.Language == IConfiguration.DEFAULT_LANGUAGE) {
+                throw new FileNotFoundException($"Language file not found: Resources/Language/{Configuration.Instance!.Language}.json");
+            } else {
+                // If the file does not exist, set the language to the default language
+                Configuration.Instance!.Language = IConfiguration.DEFAULT_LANGUAGE;
+                // Load the default language
+                this.Load();
+                return;
+            }
+        }
+
         string json = File.ReadAllText($"Resources/Language/{Configuration.Instance!.Language}.json");
-        this.Traductions = JsonSerializer.Deserialize<Dictionary<string, string>>(json)!;
+        this.Translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json)!;
+    }
+
+    public List<string> GetAvailableLanguages() {
+        // Get the list of available languages
+        // Get all the files in the Resources/Language directory
+        // and return the list of languages without the .json extension
+        string[] files = Directory.GetFiles("Resources/Language", "*.json");
+        List<string> languages = [];
+        foreach (string file in files) {
+            languages.Add(Path.GetFileNameWithoutExtension(file));
+        }
+        return languages;
     }
 
     protected virtual void OnLanguageChanged() {
-        LanguageChanged?.Invoke(this, EventArgs.Empty);
+        LanguageChanged?.Invoke(this, new LanguageChangedEventArgs(Configuration.Instance!.Language));
     }
 }
