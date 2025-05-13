@@ -13,7 +13,7 @@
   "ADD_NAME_INPUT": "Entrez le nom du travail de sauvegarde",
   "ADD_SOURCE_INPUT": "Entrez le chemin source du travail de sauvegarde",
   "ADD_DESTINATION_INPUT": "Entrez le chemin de destination du travail de sauvegarde",
-  "ADD_TYPE_INPUT": "Entrez le type de travail de sauvegarde (Complete, Sequential)"
+  "ADD_TYPE_INPUT": "Entrez le type de travail de sauvegarde (Complete, Sequential)",
   "REMOVE_INPUT": "Entrez le nom du travail de sauvegarde à supprimer ou sa position",
   "UNKNOWN_OPTION": "Option inconnue",
   "ERROR_OCCURRED": "Une erreur est survenue",
@@ -21,5 +21,9 @@
   "JOB_NAME": "Nom",
   "JOB_SOURCE": "Source",
   "JOB_DESTINATION": "Destination",
-  "JOB_TYPE": "Type"
+  "JOB_TYPE": "Type",
+  "LANGUAGE_CHANGED": "Langue changée",
+  "JOB_STATE_CHANGED": "État du travail changé",
+  "STATE": "État",
+  "CONFIGURATION_CHANGED": "Configuration changée"
 }

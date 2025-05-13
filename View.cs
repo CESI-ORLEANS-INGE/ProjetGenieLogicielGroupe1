@@ -231,9 +231,12 @@ public class View : IView {
         }
         for (int i = 0; i < View.ViewModel.Configuration.Jobs.Count; i++) {
             IBackupJobConfiguration job = View.ViewModel.Configuration.Jobs[i];
-            //Console.WriteLine($"Name: {job.Name}, Source: {job.Source}, Destination: {job.Destination}, Type: {job.Type}");
+            string prefix = new(' ', ((string.Empty + (i + 1))).Length);
             Console.WriteLine(i + 1 + ". " + Language.Instance.Translations["JOB_NAME"] + ": " + job.Name);
-            Console.
+            Console.WriteLine(prefix + ". " + Language.Instance.Translations["JOB_SOURCE"] + ": " + job.Source);
+            Console.WriteLine(prefix + ". " + Language.Instance.Translations["JOB_DESTINATION"] + ": " + job.Destination);
+            Console.WriteLine(prefix + ". " + Language.Instance.Translations["JOB_TYPE"] + ": " + job.Type);
+            Console.WriteLine(string.Empty);
         }
     }
 
@@ -254,17 +257,20 @@ public class View : IView {
     }
 
     public static void OnLanguageChanged(string language) {
-        Console.WriteLine($"Language changed to: {language}");
+        Console.WriteLine(Language.Instance.Translations["LANGUAGE_CHANGED"] + ": " + language);
     }
 
     public static void OnJobStateChanged(IBackupJobState jobState) {
-        Console.WriteLine($"Job state changed: {jobState.BackupJob.Name}, State: {jobState.State}");
+        Console.WriteLine(Language.Instance.Translations["JOB_STATE_CHANGED"] + ": " + jobState.BackupJob.Name + ", " + Language.Instance.Translations["STATE"] + ": " + jobState.State);
     }
 
     public static void OnConfigurationChanged() {
-        Console.WriteLine("Configuration changed.");
+        Console.WriteLine(Language.Instance.Translations["CONFIGURATION_CHANGED"]);
         foreach (IBackupJobConfiguration job in ViewModel!.Configuration.Jobs) {
-            Console.WriteLine($"Name: {job.Name}, Source: {job.Source}, Destination: {job.Destination}, Type: {job.Type}");
+            Console.WriteLine(Language.Instance.Translations["JOB_NAME"] + ": " + job.Name +
+                 ", " + Language.Instance.Translations["JOB_SOURCE"] + ": " + job.Source +
+                 ", " + Language.Instance.Translations["JOB_DESTINATION"] + ": " + job.Destination +
+                 ", " + Language.Instance.Translations["JOB_TYPE"] + ": " + job.Type);
         }
     }
 }
