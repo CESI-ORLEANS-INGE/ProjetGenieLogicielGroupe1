@@ -1,51 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Doc\**" />
     <Compile Remove="EasySave.Tests\**" />
     <Compile Remove="Logger\**" />
+    <EmbeddedResource Remove="Doc\**" />
     <EmbeddedResource Remove="EasySave.Tests\**" />
     <EmbeddedResource Remove="Logger\**" />
+    <None Remove="Doc\**" />
     <None Remove="EasySave.Tests\**" />
     <None Remove="Logger\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="Logger\Logger.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Resources\Language\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\Language\EN.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Language\FR.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <Page Remove="Doc\**" />
+    <Page Remove="EasySave.Tests\**" />
+    <Page Remove="Logger\**" />
   </ItemGroup>
 
 </Project>
