@@ -27,4 +27,10 @@
     <Page Remove="Logger\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\Images\logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
