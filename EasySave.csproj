@@ -28,9 +28,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Resources\Images\logo.png">
+    <None Remove="logo.png" />
+    <None Remove="Resources\Images\logo.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="logo.png" />
   </ItemGroup>
 
 </Project>

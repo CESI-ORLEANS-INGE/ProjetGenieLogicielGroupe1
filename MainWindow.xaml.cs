@@ -18,6 +18,11 @@ public partial class MainWindow : Window
 {
     public MainWindow()
     {
-       // InitializeComponent();
+        InitializeComponent();
+    }
+
+    private void InitializeComponent()
+    {
+        throw new NotImplementedException();
     }
 }
