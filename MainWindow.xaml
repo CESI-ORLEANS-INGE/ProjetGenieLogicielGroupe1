@@ -6,7 +6,13 @@
         xmlns:local="clr-namespace:EasySave"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+        </Grid.ColumnDefinitions>
+        <Image HorizontalAlignment="Left" Height="100" Margin="35,75,0,0" VerticalAlignment="Top" Width="100" Grid.Column="1"/>
+        <DockPanel HorizontalAlignment="Center" Height="434" VerticalAlignment="Center" Width="800" Grid.Column="1" LastChildFill="False" Margin="5,5,5,5">
+            <Menu Width="100" HorizontalAlignment="Left"/>
+        </DockPanel>
 
     </Grid>
 </Window>
