@@ -18,8 +18,9 @@ namespace EasySave.Logger {
         public string Destination { get; set; }
         public string TaskType { get; set; } // Type of task (e.g., copy, remove, ...)
         public double Filesize { get; set; }               // Size of the file being processed
-        public double TransfertDuration { get; set; }      // Duration of the transfer in seconds
+        public double TransfertDuration { get; set; } // Duration of the transfer in seconds
         public LogLevel Level { get; set; }                // Severity level of the log
+        public double CryptDuration {  get; set; }
     }
 
     // Concrete class implementing the ILog interface
@@ -32,5 +33,6 @@ namespace EasySave.Logger {
         public double Filesize { get; set; }
         public double TransfertDuration { get; set; }
         public LogLevel Level { get; set; }
+        public double CryptDuration { get; set; }
     }
 }
