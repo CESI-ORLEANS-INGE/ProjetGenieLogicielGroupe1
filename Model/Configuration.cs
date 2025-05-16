@@ -27,6 +27,7 @@ namespace EasySave.Model {
         ObservableCollection<string> CryptoExtentions { get; set; }
         string CryptoFile { get; set; }
         List<IBackupJobConfiguration> Jobs { get; set; }
+        public List<string> CryptExt { get; set; }
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
         public void RemoveJob(IBackupJobConfiguration jobConfiguration);
@@ -54,6 +55,8 @@ namespace EasySave.Model {
         private static string? _CryptoFile;
         // List of jobs
         private static List<IBackupJobConfiguration>? _Jobs;
+        public string CryptoFile;
+        public List<string> CryptExt { get; set; }
 
         /// <summary>
         /// Language of the application

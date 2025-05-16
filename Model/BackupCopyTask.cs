@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace EasySave.Model;
 
@@ -18,6 +19,13 @@ public class BackupCopyTask : BackupTask {
 
     protected override void Algorithm() {
         this.Source!.Copy(this.Destination!.GetParent(), true);
+        Configuration config = new Configuration();
+        Crypto crypto = new Crypto(config);
+        string extension = Path.GetExtension(Destination.GetPath()).ToLower();
+        if (!config.CryptExt.Select(ext => ext.ToLower()).Contains(extension))
+        {
+            CryptDuration = crypto.Crypt(Destination.GetPath());
+        }
     }
 }
 
