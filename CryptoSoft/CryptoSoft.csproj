@@ -2,12 +2,12 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <!-- Publish options -->
         <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
+        <!-- <SelfContained>true</SelfContained> -->
         <PublishTrimmed>true</PublishTrimmed>
         <!-- Branding -->
         <Authors>ProSoft</Authors>
@@ -22,6 +22,7 @@
         <AssemblyCopyright>Copyright © 2025 ProSoft</AssemblyCopyright>
         <PublishAot>False</PublishAot>
         <SignAssembly>False</SignAssembly>
+        <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
     </PropertyGroup>
 
 </Project>
