@@ -93,6 +93,7 @@ public class ViewModel : IViewModel {
     public IBackupState? BackupState { get; set; }
     public ILanguage Language { get; set; }
     public IConfiguration Configuration { get; set; }
+    public IProcessesDetector ProcessesDetector { get; set; }
 
     public ViewModel() {
         ConfigurationManager configurationManager = new(typeof(ConfigurationJSONFile));
@@ -103,6 +104,13 @@ public class ViewModel : IViewModel {
         this.Language = Model.Language.Instance;
         this.Language.LanguageChanged += this.OnLanguageChanged;
         this.Language.Load();
+
+        this.ProcessesDetector = new ProcessesDetector();
+        this.ProcessesDetector.OneOrMoreProcessRunning += (sender, e) => {
+            foreach (IBackupJob job in this.BackupJobs) {
+                job.Stop();
+            }
+        };
     }
 
     public void RunCommandRun(List<string> indexOrNameList) {
