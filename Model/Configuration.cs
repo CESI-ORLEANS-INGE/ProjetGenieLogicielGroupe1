@@ -19,6 +19,7 @@ namespace EasySave.Model {
     public interface IConfiguration {
         public const string DEFAULT_LANGUAGE = "FR";
         public const string DEFAULT_STATE_FILE = "state.json";
+        public const string DEFAULT_LOG_FILE = "logs.json";
 
         string Language { get; set; }
         string StateFile { get; set;  }
@@ -223,6 +224,9 @@ namespace EasySave.Model {
                 this.StateFile = configuration.GetType().GetProperty("StateFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
             }
             // Check if the jobs list is set
+            if (configuration.GetType().GetProperty("LogFile") is not null) {
+                this.LogFile = configuration.GetType().GetProperty("LogFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
+            }
             if (configuration.GetType().GetProperty("Jobs") is not null) {
                 // Set the jobs list from the configuration
                 this.Jobs = configuration.GetType().GetProperty("Jobs")?.GetValue(configuration) as List<IBackupJobConfiguration> ?? [];
