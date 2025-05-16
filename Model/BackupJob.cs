@@ -59,6 +59,7 @@ public interface IBackupJob {
     /// This method will execute the backup tasks in the order they are defined in the Tasks list.
     /// </summary>
     public void Run();
+    public void Stop();
 
     ///// <summary>
     ///// Pauses the backup job.
@@ -88,6 +89,7 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
     public string Name { get; } = name;
     public IDirectoryHandler Source { get; } = source;
     public IDirectoryHandler Destination { get; } = destination;
+    private bool _isStopped = false;
 
     public List<IBackupTask> Tasks { get; } = [];
     public int CurrentTask { get; set; } = 0;
@@ -109,7 +111,14 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
             return;
         }
 
+        this._isStopped = false;
+
         for (this.CurrentTask = 0; this.CurrentTask < Tasks.Count; this.CurrentTask++) {
+            if (this._isStopped) {
+                this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
+                return;
+            }
+
             IBackupTask task = Tasks[this.CurrentTask];
             task.StartTime = DateTime.Now;
             try {
@@ -123,6 +132,10 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
         }
 
         this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
+    }
+
+    public void Stop() {
+        this._isStopped = true;
     }
 }
 
