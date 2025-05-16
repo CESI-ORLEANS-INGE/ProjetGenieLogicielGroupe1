@@ -24,6 +24,8 @@ public interface IBackupTask {
     /// </summary>
     public DateTime? EndTime { get; set; }
 
+    public double CryptDuration { get; set; }
+
     /// <summary>
     /// Duration of the backup task in milliseconds.
     /// </summary>
@@ -45,6 +47,7 @@ public abstract class BackupTask(IEntryHandler? source, IEntryHandler? destinati
 
     public DateTime? StartTime { get; set; }
     public DateTime? EndTime { get; set; }
+    public double CryptDuration { get; set; }
 
     public double GetDuration() {
         if (StartTime == null || EndTime == null) {

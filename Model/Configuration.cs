@@ -22,6 +22,7 @@ namespace EasySave.Model {
         string Language { get; set; }
         string StateFile { get; }
         List<IBackupJobConfiguration> Jobs { get; set; }
+        public List<string> CryptExt { get; set; }
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
         public void RemoveJob(IBackupJobConfiguration jobConfiguration);
@@ -41,6 +42,8 @@ namespace EasySave.Model {
         private static string? _StateFile;
         // List of jobs
         private static List<IBackupJobConfiguration>? _Jobs;
+        public string CryptoFile;
+        public List<string> CryptExt { get; set; }
 
         /// <summary>
         /// Language of the application
