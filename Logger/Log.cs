@@ -18,7 +18,7 @@ namespace EasySave.Logger {
         public string Destination { get; set; }
         public string TaskType { get; set; } // Type of task (e.g., copy, remove, ...)
         public double Filesize { get; set; }               // Size of the file being processed
-        public double TransfertDuration { get; set; }      // Duration of the transfer in seconds
+        public double TransfertDuration { get; set; } // Duration of the transfer in seconds
         public LogLevel Level { get; set; }                // Severity level of the log
     }
 
