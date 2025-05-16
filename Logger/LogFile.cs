@@ -9,7 +9,7 @@ namespace EasySave.Logger {
     // Interface defining methods for managing log files
     public interface ILogFile {
         // Method to save a log entry to a file
-        public void Save(Log log, string filepath, string Cry);
+        public void Save(Log log, string filepath);
 
         // Method to read logs from a file
         public List<Log> Read(string filepath);
@@ -18,7 +18,7 @@ namespace EasySave.Logger {
     // Implementation of the ILogFile interface
     public class LogFileXML : ILogFile {
         // Saves a Log object to a XML file
-        public void Save(Log log, string filePath,string CryptPath) {
+        public void Save(Log log, string filePath) {
             XDocument xml;
             // Si le fichier n'existe pas, on le crée avec une racine <Logs>
             if (!File.Exists(filePath))
@@ -29,8 +29,7 @@ namespace EasySave.Logger {
             {
                 xml = XDocument.Load(filePath);
             }
-            Crypt Cryptage = new();
-            log.CryptDuration = Cryptage.crypt(CryptPath)
+
             // Create a JSON object from the log properties
             XElement newLog = new XElement("log", 
                 new XElement("DateTime",log.Datetime),
@@ -40,8 +39,7 @@ namespace EasySave.Logger {
                 new XElement("TaskType", log.TaskType),
                 new XElement("Filesize", log.Filesize),
                 new XElement("TransfertDuration", log.TransfertDuration),
-                new XElement("CryptDuration", log.CryptDuration),
-                new XElement("Level", log.Level.ToString()),
+                new XElement("Level", log.Level.ToString())
                 );
 
 
@@ -52,58 +50,56 @@ namespace EasySave.Logger {
         // Reads the content of a JSON file and returns a list of Log objects
         
 
-    public List<Log> ReadXml(string filePath)
-        {
-            // Vérifie si le fichier existe
-            if (!File.Exists(filePath))
+        public List<Log> Read(string filePath)
             {
-                Console.WriteLine("XML file not found.");
-                return new List<Log>();
-            }
-
-            try
-            {
-                // Charge le document XML
-                XDocument doc = XDocument.Load(filePath);
-
-                // Liste pour stocker les logs
-                List<Log> logs = new List<Log>();
-
-                // Parcourt chaque élément <Log>
-                foreach (XElement logElement in doc.Descendants("Log"))
+                // Vérifie si le fichier existe
+                if (!File.Exists(filePath))
                 {
-                    Log log = new Log
-                    {
-                        Datetime = DateTime.Parse(logElement.Element("DateTime")?.Value ?? DateTime.MinValue.ToString()),
-                        Name = logElement.Element("Name")?.Value ?? "",
-                        Description = logElement.Element("Description")?.Value ?? "",
-                        Type = logElement.Element("Type")?.Value ?? "",
-                        TypeDescription = logElement.Element("TypeDescription")?.Value ?? "",
-                        Filesize = double.TryParse(logElement.Element("Filesize")?.Value, out double size) ? size : 0,
-                        TransfertDuration = double.TryParse(logElement.Element("TransfertDuration")?.Value, out double dur) ? dur : 0,
-                        Level = Enum.TryParse<LogLevel>(logElement.Element("Level")?.Value, out var level) ? level : LogLevel.Information,
-                        CryptDuration=double.TryParse(logElement.XElement("CryptDuration")?.Value,out double crypt) ? crypt:0
-                    };
-
-                    logs.Add(log);
+                    Console.WriteLine("XML file not found.");
+                    return new List<Log>();
                 }
 
-                return logs;
+                try
+                {
+                    // Charge le document XML
+                    XDocument doc = XDocument.Load(filePath);
+
+                    // Liste pour stocker les logs
+                    List<Log> logs = new List<Log>();
+
+                    // Parcourt chaque élément <Log>
+                    foreach (XElement logElement in doc.Descendants("Log"))
+                    {
+                        Log log = new Log
+                        {
+                            Datetime = DateTime.Parse(logElement.Element("DateTime")?.Value ?? DateTime.MinValue.ToString()),
+                            JobName = logElement.Element("JobName")?.Value ?? "",
+                            Source = logElement.Element("Source")?.Value ?? "",
+                            Destination = logElement.Element("Destination")?.Value ?? "",
+                            TaskType = logElement.Element("TaskType")?.Value ?? "",
+                            Filesize = double.TryParse(logElement.Element("Filesize")?.Value, out double size) ? size : 0,
+                            TransfertDuration = double.TryParse(logElement.Element("TransfertDuration")?.Value, out double dur) ? dur : 0,
+                            Level = Enum.TryParse<LogLevel>(logElement.Element("Level")?.Value, out var level) ? level : LogLevel.Information,
+                        };
+
+                        logs.Add(log);
+                    }
+
+                    return logs;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error reading XML file: {ex.Message}");
+                    return new List<Log>();
+                }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error reading XML file: {ex.Message}");
-                return new List<Log>();
-            }
-        }
 
 }
     public class LogFileJSON : ILogFile
     { // Saves a Log object to a JSON file
-        public void Save(Log log, string filePath,string CryptPath)
+        public void Save(Log log, string filePath)
         {
-            Crypt Cryptage = new();
-            log.CryptDuration = Cryptage.crypt(CryptPath)
+
             // Create a JSON object from the log properties
             var jsonObject = new JsonObject
             {
@@ -115,7 +111,6 @@ namespace EasySave.Logger {
                 ["Filesize"] = log.Filesize,
                 ["TransfertDuration"] = log.TransfertDuration,
                 ["Level"] = log.Level.ToString(),
-                ["CryptDuration"]=log.CryptDuration,
             };
 
             // Convert the JSON object to a string

@@ -27,23 +27,27 @@ namespace EasySave.Logger {
         }
 
         // Core method to log an entry
-        public void Log(Log entry) {
-            //// Format the log message with all relevant information
-            //string logMessage = $"[{entry.Datetime:yyyy-MM-dd HH:mm:ss}] " +
-            //                    $"[{entry.Level}] " +
-            //                    $"JobName: {entry.JobName}, " +
-            //                    $"Size: {entry.Filesize:0.00} units, " +
-            //                    $"Duration: {entry.TransfertDuration:0.00}s, " +
-            //                    $"Source: {entry.Source}" +
-            //                    $"Destination: {entry.Destination}";
+        public void Log(Log entry)
+        {
+            ILogFile logFile;
 
-            //// Output the log message to the console
-            //Console.WriteLine(logMessage);
+            string extension = Path.GetExtension(_filePath).ToLower();
 
-            // Save the log to the file using the LogFile class
-            LogFile File = new();
-            File.Save(entry, this._filePath);
+            switch (extension)
+            {
+                case ".xml":
+                    logFile = new LogFileXML();
+                    break;
+                case ".json":
+                    logFile = new LogFileJSON();
+                    break;
+                default:
+                    throw new NotSupportedException($"Extension '{extension}' non supportée pour le fichier de log.");
+            }
+
+            logFile.Save(entry, _filePath);
         }
+
 
         // Shortcut method to log an entry as "Information"
         public void Info(Log entry) => LogWithLevel(entry, LogLevel.Information);
