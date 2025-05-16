@@ -27,23 +27,14 @@ namespace EasySave.Logger {
         }
 
         // Core method to log an entry
-        public void Log(Log entry)
-        {
-            ILogFile logFile;
-
+        public void Log(Log entry) {
             string extension = Path.GetExtension(_filePath).ToLower();
-
-            switch (extension)
-            {
-                case ".xml":
-                    logFile = new LogFileXML();
-                    break;
-                case ".json":
-                    logFile = new LogFileJSON();
-                    break;
-                default:
-                    throw new NotSupportedException($"Extension '{extension}' non supportée pour le fichier de log.");
-            }
+            
+            ILogFile logFile = extension switch {
+                ".xml" => new LogFileXML(),
+                ".json" => new LogFileJSON(),
+                _ => throw new NotSupportedException($"Extension '{extension}' non supportée pour le fichier de log."),
+            };
 
             logFile.Save(entry, _filePath);
         }
