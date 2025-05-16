@@ -4,6 +4,7 @@
   "MENU_OPTION_ADD": "Add a backup job",
   "MENU_OPTION_REMOVE": "Remove a backup job",
   "MENU_OPTION_LANGUAGE": "Change language",
+  "MENU_OPTION_LOG": "Change log file path",
   "MENU_CHOICE": "Choose an option",
   "LANGUAGE_INPUT": "Choose a language",
   "LANGUAGE_NOT_FOUND": "Language not found",
@@ -31,4 +32,5 @@
   "JOB_STATE_ENDED": "Backup job completed",
   "MENU_OPTION_CONFIGURATION": "Show configuration",
   "MENU_OPTION_RELOAD": "Reload configuration",
+  "LOG_INPUT": "Enter the log file path"
 }

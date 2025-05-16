@@ -58,6 +58,11 @@ public interface IView {
     /// Runs the command to display the configuration as JSON.
     /// </summary>
     public static abstract void RunCommandConfiguration();
+    /// <summary>
+    /// Runs the command to change the log file path, so that change the log file type.
+    /// </summary>
+    /// <param name="filePath"></param>
+    public static abstract void RunCommandLog(string filePath);
 
     // +----------------------------------+
     // |          EVENTS HANDLERS         |
@@ -98,20 +103,43 @@ public class View : IView {
                     View.RunCommandList();
                     break;
                 case "run":
+                    if (args.Length < 2) {
+                        Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                        return;
+                    }
                     View.RunCommandRun(View.ParseJobList(args[1]));
                     break;
                 case "add":
+                    if (args.Length < 5) {
+                        Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                        return;
+                    }
                     View.RunCommandAdd(args[1], args[2], args[3], args[4]);
                     break;
                 case "remove":
+                    if (args.Length < 2) {
+                        Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                        return;
+                    }
                     View.RunCommandRemove(args[1]);
                     break;
                 case "language":
+                    if (args.Length < 2) {
+                        Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                        return;
+                    }
                     View.RunCommandLanguage(args[1]);
                     break;
                 case "configuration":
                 case "config":
                     View.RunCommandConfiguration();
+                    break;
+                case "log":
+                    if (args.Length < 2) {
+                        Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                        return;
+                    }
+                    View.RunCommandLog(args[1]);
                     break;
                 default:
                     Console.WriteLine(Language.Instance.Translations["UNKNOWN_COMMAND"]);
@@ -128,6 +156,7 @@ public class View : IView {
                 Console.WriteLine("| 4. " + Language.Instance.Translations["MENU_OPTION_REMOVE"].PadRight(48) + '|');
                 Console.WriteLine("| 5. " + Language.Instance.Translations["MENU_OPTION_LANGUAGE"].PadRight(48) + '|');
                 Console.WriteLine("| 6. " + Language.Instance.Translations["MENU_OPTION_CONFIGURATION"].PadRight(48) + '|');
+                Console.WriteLine("| 7. " + Language.Instance.Translations["MENU_OPTION_LOG"].PadRight(48) + '|');
                 Console.WriteLine("+----------------------------------------------------+");
                 Console.Write("+ " + Language.Instance.Translations["MENU_CHOICE"] + ": ");
                 string? choice = Console.ReadLine();
@@ -206,6 +235,15 @@ public class View : IView {
                         case "6":
                             View.RunCommandConfiguration();
                             break;
+                        case "7":
+                            Console.Write("+ " + Language.Instance.Translations["LOG_INPUT"] + ": ");
+                            string? filePath = Console.ReadLine();
+                            if (filePath is null) {
+                                Console.WriteLine(Language.Instance.Translations["INVALID_INPUT"]);
+                                continue;
+                            }
+                            View.RunCommandLog(filePath);
+                            break;
                         default:
                             Console.WriteLine(Language.Instance.Translations["UNKNOWN_OPTION"]);
                             break;
@@ -277,15 +315,7 @@ public class View : IView {
     }
 
     public static void RunCommandConfiguration() {
-        var jsonObject = new JsonObject {
-            ["Language"] = Configuration.Instance?.Language,
-            ["Jobs"] = new JsonArray([.. Configuration.Instance?.Jobs.Select(j => new JsonObject {
-                                    ["Name"] = j.Name,
-                                    ["Source"] = j.Source,
-                                    ["Destination"] = j.Destination,
-                                    ["Type"] = j.Type
-                                }) ?? []])
-        };
+        var jsonObject = Configuration.Instance?.ToJSON() ?? new JsonObject();
 
         string jsonString = jsonObject.ToJsonString(new JsonSerializerOptions {
             WriteIndented = true
@@ -293,6 +323,11 @@ public class View : IView {
 
         Console.WriteLine(jsonString);
     }
+
+    public static void RunCommandLog(string filePath) {
+        ViewModel?.RunCommandLog(filePath);
+    }
+
 
     public static void OnPropertyChanged(object sender, PropertyChangedEventArgs e) {
         // nothing
@@ -311,7 +346,7 @@ public class View : IView {
                 Console.WriteLine(
                     Language.Instance.Translations["JOB_STATE_IN_PROGRESS"] +
                     " : " + e.JobState.BackupJob.Name + " => " + e.JobState.Progression + "% "
-                );                
+                );
                 break;
             case State.END:
                 Console.WriteLine(Language.Instance.Translations["JOB_STATE_ENDED"] + " : " + e.JobState.BackupJob.Name);

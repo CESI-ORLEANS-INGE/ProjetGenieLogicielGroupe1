@@ -15,16 +15,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
     private string FilePath { get; set; } = filePath;
 
     public void Save(IConfiguration configuration) {
-        var jsonObject = new JsonObject {
-            ["Language"] = configuration.Language,
-            ["LogFile"] = configuration.LogFile,
-            ["Jobs"] = new JsonArray([.. configuration.Jobs.Select(j => new JsonObject {
-                ["Name"] = j.Name,
-                ["Source"] = j.Source,
-                ["Destination"] = j.Destination,
-                ["Type"] = j.Type
-            })])
-        };
+        var jsonObject = configuration.ToJSON();
 
         string jsonString = jsonObject.ToJsonString(new JsonSerializerOptions {
             WriteIndented = true
