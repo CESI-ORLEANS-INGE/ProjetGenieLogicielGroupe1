@@ -62,6 +62,11 @@ public interface IViewModel : INotifyPropertyChanged {
     void RunCommandLanguage(string language);
 
     /// <summary>
+    /// Runs the command to change the log file path.
+    /// </summary>
+    void RunCommandLog(string logFilePath);
+
+    /// <summary>
     /// Called when the language is changed.
     /// </summary>
     void OnLanguageChanged(object sender, LanguageChangedEventArgs e);
@@ -139,7 +144,7 @@ public class ViewModel : IViewModel {
 
         IStateFile file = new StateFile(this.Configuration.StateFile);
         using (this.BackupState = new BackupState(file))
-        this.BackupState.JobStateChanged += this.OnJobStateChanged;
+            this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
         foreach (IBackupJob job in this.BackupJobs) {
             job.Analyze();
@@ -154,7 +159,7 @@ public class ViewModel : IViewModel {
         if (this.Configuration.Jobs.Count >= 5) {
             throw new Exception("Maximum number of backup jobs reached (5).");
         }
-        
+
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
             throw new Exception($"A backup job with the name '{name}' already exists.");
         }
@@ -206,6 +211,10 @@ public class ViewModel : IViewModel {
     }
     public void RunCommandLanguage(string language) {
         this.Language.SetLanguage(language);
+    }
+    public void RunCommandLog(string logFilePath) {
+        Configuration.LogFile = logFilePath;
+        Logger.SetLogFile(logFilePath);
     }
 
 

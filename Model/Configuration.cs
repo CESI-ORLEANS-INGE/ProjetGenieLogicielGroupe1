@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace EasySave.Model {
     public class ConfigurationChangedEventArgs : EventArgs {
@@ -19,6 +21,7 @@ namespace EasySave.Model {
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
         public void RemoveJob(IBackupJobConfiguration jobConfiguration);
+        public JsonObject ToJSON();
 
         event ConfigurationChangedEventHandler ConfigurationChanged;
     }
@@ -129,5 +132,20 @@ namespace EasySave.Model {
         }
 
         public event ConfigurationChangedEventHandler? ConfigurationChanged;
+
+        public JsonObject ToJSON() {
+            return new JsonObject {
+                ["Language"] = this.Language,
+                ["StateFile"] = this.StateFile,
+                ["LogFile"] = this.LogFile,
+                ["Jobs"] = new JsonArray([.. this.Jobs.Select(j => new JsonObject {
+                    ["Name"] = j.Name,
+                    ["Source"] = j.Source,
+                    ["Destination"] = j.Destination,
+                    ["Type"] = j.Type
+                })])
+            };
+        }
     }
+
 }

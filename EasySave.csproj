@@ -8,10 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Doc\**" />
     <Compile Remove="EasySave.Tests\**" />
     <Compile Remove="Logger\**" />
+    <EmbeddedResource Remove="Doc\**" />
     <EmbeddedResource Remove="EasySave.Tests\**" />
     <EmbeddedResource Remove="Logger\**" />
+    <None Remove="Doc\**" />
     <None Remove="EasySave.Tests\**" />
     <None Remove="Logger\**" />
   </ItemGroup>
