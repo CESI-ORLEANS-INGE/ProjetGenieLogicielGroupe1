@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace EasySave.Model {
     /// <summary>
@@ -20,7 +21,11 @@ namespace EasySave.Model {
         public const string DEFAULT_STATE_FILE = "state.json";
 
         string Language { get; set; }
-        string StateFile { get; }
+        string StateFile { get; set;  }
+        string LogFile { get; set;  }
+        ObservableCollection<string> Processes { get; set; }
+        ObservableCollection<string> CryptoExtentions { get; set; }
+        string CryptoFile { get; set; }
         List<IBackupJobConfiguration> Jobs { get; set; }
         public List<string> CryptExt { get; set; }
 
@@ -40,6 +45,14 @@ namespace EasySave.Model {
         private static string? _Language;
         // State file of the application
         private static string? _StateFile;
+        // Log file of the application
+        private static string? _LogFile;
+        // List of processes to detect
+        private static ObservableCollection<string>? _Processes;
+        // List of crypt extentions
+        private static ObservableCollection<string>? _CryptExtentions;
+        // Crypto file of the application
+        private static string? _CryptoFile;
         // List of jobs
         private static List<IBackupJobConfiguration>? _Jobs;
         public string CryptoFile;
@@ -82,6 +95,52 @@ namespace EasySave.Model {
                 });
             }
         }
+
+        public string LogFile {
+            // check if the log file is set
+            // if not, throw an exception
+            get => _LogFile ?? throw new InvalidOperationException("Log file is not set");
+            // set the log file and raise the event
+            set {
+                // set the log file
+                _LogFile = value;
+                // set the configuration changed event
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    // set the new log file to save
+                    PropertyName = nameof(LogFile)
+                });
+            }
+        }
+
+        public ObservableCollection<string> Processes {
+            // getting the processes list
+            get => _Processes ?? new ObservableCollection<string>();
+            // setting the processes list and raising the event
+            set {
+                _Processes = value;
+                // set the configuration changed event
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    // set the new processes list to save
+                    PropertyName = nameof(Processes)
+                });
+            }
+        }
+
+        public ObservableCollection<string> CryptoExtentions {
+            // getting the crypt extentions list
+            get => _CryptExtentions ?? new ObservableCollection<string>();
+            // setting the crypt extentions list and raising the event
+            set {
+                _CryptExtentions = value;
+                // set the configuration changed event
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    // set the new crypt extentions list to save
+                    PropertyName = nameof(CryptoExtentions)
+                });
+            }
+        }
+
+
         /// <summary>
         /// List of jobs
         /// </summary>
@@ -108,8 +167,41 @@ namespace EasySave.Model {
                 // if the instance is already created, throw an exception
                 throw new InvalidOperationException("Configuration is already initialized.");
             }
+
+            this.Processes.CollectionChanged += (sender, args) => {
+                // raise the ConfigurationChanged event when a process is added or removed
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    // set the property name to Processes
+                    PropertyName = nameof(Processes)
+                });
+            };
+
+            this.CryptoExtentions.CollectionChanged += (sender, args) => {
+                // raise the ConfigurationChanged event when a crypt extention is added or removed
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    // set the property name to CryptExtentions
+                    PropertyName = nameof(CryptoExtentions)
+                });
+            };
+
             // assign of the values configuration
             Configuration.Instance = this;
+        }
+
+        public string CryptoFile {
+            // check if the crypto file is set
+            // if not, throw an exception
+            get => _CryptoFile ?? throw new InvalidOperationException("Crypto file is not set");
+            // set the crypto file and raise the event
+            set {
+                // set the crypto file
+                _CryptoFile = value;
+                // set the configuration changed event
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    // set the new crypto file to save
+                    PropertyName = nameof(CryptoFile)
+                });
+            }
         }
 
         /// <summary>
