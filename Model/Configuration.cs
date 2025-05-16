@@ -10,9 +10,11 @@ namespace EasySave.Model {
     public interface IConfiguration {
         public const string DEFAULT_LANGUAGE = "FR";
         public const string DEFAULT_STATE_FILE = "state.json";
+        public const string DEFAULT_LOG_FILE = "logs.json";
 
         string Language { get; set; }
         string StateFile { get; }
+        string LogFile { get; set; }
         List<IBackupJobConfiguration> Jobs { get; set; }
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
@@ -26,6 +28,7 @@ namespace EasySave.Model {
 
         private static string? _Language;
         private static string? _StateFile;
+        private static string? _LogFile;
         private static List<IBackupJobConfiguration>? _Jobs;
 
         public string Language {
@@ -43,6 +46,15 @@ namespace EasySave.Model {
                 _StateFile = value;
                 this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
                     PropertyName = nameof(StateFile)
+                });
+            }
+        }
+        public string LogFile {
+            get => _LogFile ?? IConfiguration.DEFAULT_LOG_FILE;
+            set {
+                _LogFile = value;
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                    PropertyName = nameof(LogFile)
                 });
             }
         }
@@ -74,6 +86,9 @@ namespace EasySave.Model {
             }
             if (configuration.GetType().GetProperty("StateFile") is not null) {
                 this.StateFile = configuration.GetType().GetProperty("StateFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
+            }
+            if (configuration.GetType().GetProperty("LogFile") is not null) {
+                this.LogFile = configuration.GetType().GetProperty("LogFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
             }
             if (configuration.GetType().GetProperty("Jobs") is not null) {
                 this.Jobs = configuration.GetType().GetProperty("Jobs")?.GetValue(configuration) as List<IBackupJobConfiguration> ?? [];

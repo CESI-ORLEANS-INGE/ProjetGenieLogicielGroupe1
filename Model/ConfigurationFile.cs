@@ -17,6 +17,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
     public void Save(IConfiguration configuration) {
         var jsonObject = new JsonObject {
             ["Language"] = configuration.Language,
+            ["LogFile"] = configuration.LogFile,
             ["Jobs"] = new JsonArray([.. configuration.Jobs.Select(j => new JsonObject {
                 ["Name"] = j.Name,
                 ["Source"] = j.Source,
@@ -47,6 +48,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
         if (jsonNode is JsonObject jsonObject) {
             string language = jsonObject["Language"]?.ToString() ?? IConfiguration.DEFAULT_LANGUAGE;
             string stateFile = jsonObject["StateFile"]?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
+            string logFile = jsonObject["LogFile"]?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
 
             List<IBackupJobConfiguration> jobs = [];
             if (jsonObject["Jobs"] is JsonArray jobsArray) {
@@ -70,6 +72,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             IConfiguration configuration = new Configuration(new {
                 Language = language,
                 StateFile = stateFile,
+                LogFile = logFile,
                 Jobs = jobs
             });
 

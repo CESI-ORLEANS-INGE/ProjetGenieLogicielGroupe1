@@ -1,4 +1,5 @@
-﻿using EasySave.Model;
+﻿using EasySave.Logger;
+using EasySave.Model;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -93,16 +94,18 @@ public class ViewModel : IViewModel {
     public IBackupState? BackupState { get; set; }
     public ILanguage Language { get; set; }
     public IConfiguration Configuration { get; set; }
+    public ILogger Logger { get; set; }
 
     public ViewModel() {
         ConfigurationManager configurationManager = new(typeof(ConfigurationJSONFile));
         this.Configuration = configurationManager.Load(ViewModel.CONFIGURATION_PATH);
-
         this.Configuration.ConfigurationChanged += this.OnConfigurationChanged;
 
         this.Language = Model.Language.Instance;
         this.Language.LanguageChanged += this.OnLanguageChanged;
         this.Language.Load();
+
+        this.Logger = new Logger.Logger(this.Configuration.LogFile);
     }
 
     public void RunCommandRun(List<string> indexOrNameList) {
@@ -211,6 +214,18 @@ public class ViewModel : IViewModel {
     }
     public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
         this.JobStateChanged?.Invoke(this, e);
+
+        if (e.JobState?.State == State.IN_PROGRESS) {
+            IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTask];
+            this.Logger.Info(new Log {
+                JobName = e.JobState.BackupJob.Name,
+                Filesize = task.Source?.GetSize() ?? 0,
+                Source = task.Source?.GetPath() ?? string.Empty,
+                Destination = task.Destination?.GetPath() ?? string.Empty,
+                TaskType = task is BackupCopyTask ? "Copy" : "Remove",
+                TransfertDuration = task.GetDuration()
+            });
+        }
     }
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, e);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Runtime.ExceptionServices;
 using EasySave.Model;
-using EasySave.Logger;
 using System.ComponentModel;
 using System.Text.Json.Nodes;
 using System.Text.Json;
@@ -84,7 +83,6 @@ public interface IView {
 
 public class View : IView {
     private static IViewModel? ViewModel;
-    public static ILogger Logger = new Logger.Logger("logs.txt");
 
     public static void Main(string[] args) {
         // Initialize the ViewModel
@@ -313,18 +311,7 @@ public class View : IView {
                 Console.WriteLine(
                     Language.Instance.Translations["JOB_STATE_IN_PROGRESS"] +
                     " : " + e.JobState.BackupJob.Name + " => " + e.JobState.Progression + "% "
-                );
-
-                IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTask];
-                View.Logger.Info(new Log {
-                    JobName = e.JobState.BackupJob.Name,
-                    Filesize = task.Source?.GetSize() ?? 0,
-                    Source = task.Source?.GetPath() ?? string.Empty,
-                    Destination = task.Destination?.GetPath() ?? string.Empty,
-                    TaskType = task is BackupCopyTask ? "Copy" : "Remove",
-                    TransfertDuration = task.GetDuration()
-                });
-                
+                );                
                 break;
             case State.END:
                 Console.WriteLine(Language.Instance.Translations["JOB_STATE_ENDED"] + " : " + e.JobState.BackupJob.Name);
