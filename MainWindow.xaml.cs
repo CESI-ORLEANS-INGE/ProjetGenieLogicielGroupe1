@@ -6,28 +6,25 @@ namespace EasySave;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window
-{
-    public MainWindow()
-    {
+public partial class MainWindow : Window {
+    private readonly IViewModel _ViewModel;
+
+    public MainWindow(IViewModel viewModel) {
+        this._ViewModel = viewModel;
+
         InitializeComponent();
     }
-    
-    private void JobsList_Click(object sender, RoutedEventArgs e)
-    {
+
+    private void JobsList_Click(object sender, RoutedEventArgs e) {
         MainContent.Content = new JobsList();
     }
-
-    private void RunningJobs_Click(object sender, RoutedEventArgs e)
-    {
-        MainContent.Content = new RunningJobs();
+    private void RunningJobs_Click(object sender, RoutedEventArgs e) {
+        MainContent.Content = new RunningJobs(this._ViewModel);
     }
-    private void Logs_Click(object sender, RoutedEventArgs e)
-    {
+    private void Logs_Click(object sender, RoutedEventArgs e) {
         MainContent.Content = new Logs();
     }
-    private void Configuration_Click(object sender, RoutedEventArgs e)
-    {
+    private void Configuration_Click(object sender, RoutedEventArgs e) {
         MainContent.Content = new Configuration();
     }
 
