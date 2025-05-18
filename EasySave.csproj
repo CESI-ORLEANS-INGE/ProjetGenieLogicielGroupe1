@@ -38,6 +38,19 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="Logger\Logger.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Resources\Language\EN.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\Language\FR.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
     <Exec Command="call .\Scripts\prebuild.bat $(Configuration)" />
   </Target>

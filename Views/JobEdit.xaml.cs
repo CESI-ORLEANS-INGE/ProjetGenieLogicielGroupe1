@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.Win32;
 using System.Windows;
-
-using System.Windows.Controls;
-using EasySave.Views;
 
 namespace EasySave.Views
 {
@@ -17,48 +11,67 @@ namespace EasySave.Views
         {
             InitializeComponent();
         }
+
         // Event handler for the Save button click
         private void SaveJob(object sender, RoutedEventArgs e)
         {
-            
             this.Close();
         }
+
         // Event handler for the Cancel button click
-        private void Cancel(object sender, RoutedEventArgs e)
+        private void Cancel_Click(object sender, RoutedEventArgs e)
         {
-            // Logic to cancel the job creation
-            // For example, you can just close the window
             this.Close();
         }
 
         // Event handler for the Delete button click
         private void DeleteJob(object sender, RoutedEventArgs e)
         {
-            // Logic to delete the job
-            // For example, you can remove the job from a list or database
-            // Close the window after deleting
             this.Close();
         }
 
-        // Generation of file system windows
-        // Event handler for the Browse button click
+        // Event handler for the Browse Source button click
         private void BrowseSource_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
+            try
             {
-                PathSource.Text = openFileDialog.FileName;
+                OpenFileDialog openFileDialog = new OpenFileDialog
+                {
+                    Title = "Sélectionnez un fichier source",
+                    Filter = "Tous les fichiers (*.*)|*.*"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    PathSource.Text = openFileDialog.FileName;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erreur lors de la sélection du fichier source : " + ex.Message);
             }
         }
 
+        // Event handler for the Browse Destination button click
         private void BrowseDestination_Click(object sender, RoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if (openFileDialog.ShowDialog() == true)
+            try
             {
-                PathDesstination.Text = openFileDialog.FileName;
+                OpenFileDialog openFileDialog = new OpenFileDialog
+                {
+                    Title = "Sélectionnez un fichier de destination",
+                    Filter = "Tous les fichiers (*.*)|*.*"
+                };
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    PathDestination.Text = openFileDialog.FileName;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Erreur lors de la sélection du fichier de destination : " + ex.Message);
             }
         }
-
     }
 }
