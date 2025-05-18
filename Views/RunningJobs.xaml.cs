@@ -8,14 +8,17 @@ using System.Windows;
 using System.Threading.Tasks;
 using System.Windows.Data;
 using System.Windows.Controls;
+using System.ComponentModel;
 
 namespace EasySave.Views {
-
-    partial class RunningJobs {
+    partial class RunningJobs : INotifyPropertyChanged {
         private readonly IViewModel _ViewModel;
         private readonly ObservableCollection<IBackupJobState> _RunningJobList = [];
         public IEnumerable<IBackupJobState> RunningJobList => _RunningJobList;
         private readonly Task _RefreshTask;
+        public DateTime? StartedAt => _RunningJobList.Count == 0 ? null : _RunningJobList.Min(job => job.BackupJob.StartedAt);
+        public int TotalFilesToCopy => _RunningJobList.Count == 0 ? 0 : (int)_RunningJobList.Sum(job => job.TotalFilesToCopy);
+        public int TotalFilesLeft => _RunningJobList.Count == 0 ? 0 : (int)_RunningJobList.Sum(job => job.FilesLeft);
 
         public RunningJobs(IViewModel viewModel) {
             this._ViewModel = viewModel;
@@ -30,6 +33,7 @@ namespace EasySave.Views {
                 while (true) {
                     this.Dispatcher.Invoke(() => {
                         this.RunningJobsList.Items.Refresh();
+                        this.OnPropertyChanged(nameof(StartedAt));
                     });
                     Task.Delay(1000).Wait();
                 }
@@ -48,6 +52,10 @@ namespace EasySave.Views {
                 }
                 this.RunningJobsList.Items.Refresh();
             });
+
+            this.OnPropertyChanged(nameof(StartedAt));
+            this.OnPropertyChanged(nameof(TotalFilesToCopy));
+            this.OnPropertyChanged(nameof(TotalFilesLeft));
         }
 
         private void CancelAllButton_Click(object sender, RoutedEventArgs e) {
@@ -64,6 +72,11 @@ namespace EasySave.Views {
             if (sender is Button button && button.DataContext is IBackupJobState jobState) {
                 jobState.BackupJob.Stop();
             }
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged(string propertyName) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 }

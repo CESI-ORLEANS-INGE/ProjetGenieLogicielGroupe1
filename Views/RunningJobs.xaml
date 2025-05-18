@@ -116,7 +116,18 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Text="dzdepzodkzpokez" Grid.Column="0"/>
+            <StackPanel Orientation="Vertical" Grid.Column="0">
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Started At : "/>
+                    <Label Content="{Binding StartedAt, Converter={StaticResource DtToStrConverter}}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Label Content="Copy : "/>
+                    <Label Content="{Binding TotalFilesLeft}"/>
+                    <Label Content="/"/>
+                    <Label Content="{Binding TotalFilesToCopy}"/>
+                </StackPanel>
+            </StackPanel>
 
             <Grid Grid.Column="1">
                 <Grid.RowDefinitions>
