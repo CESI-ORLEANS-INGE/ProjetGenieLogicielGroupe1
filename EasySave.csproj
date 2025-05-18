@@ -29,7 +29,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="logo.png" />
     <None Remove="Resources\Images\logo.png" />
   </ItemGroup>
 
@@ -37,10 +36,6 @@
     <Content Include="Resources\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="logo.png" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
