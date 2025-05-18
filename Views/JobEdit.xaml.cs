@@ -27,7 +27,9 @@ namespace EasySave.Views
         // Event handler for the Delete button click
         private void DeleteJob(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            // Open confirmation dialog
+            ConfirmDeleteWindow confirmDeleteWindow = new ConfirmDeleteWindow();
+            confirmDeleteWindow.ShowDialog();
         }
 
         // Event handler for the Browse Source button click

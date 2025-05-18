@@ -44,7 +44,7 @@
 
         <!-- Bottom Buttons -->
         <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,0,0" Grid.Column="1">
-            <Button Content="Remove" Width="75" Margin="5 0"/>
+            <Button Content="Remove" Width="75" Margin="5 0" Click="DeleteJob"/>
             <Button Content="Cancel" Width="75" Margin="5 0" Click="Cancel_Click"/>
             <Button Content="Save" Width="75" Margin="5 0"/>
         </StackPanel>
