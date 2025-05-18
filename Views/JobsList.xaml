@@ -15,7 +15,7 @@
         </Grid.RowDefinitions>
 
         <!-- Bouton Add -->
-        <Button Content="+ Add" Width="100" Height="30" HorizontalAlignment="Right" Margin="0,0,0,10" Grid.Row="0" Background="White"/>
+        <Button Content="+ Add" Width="100" Height="30" HorizontalAlignment="Right" Margin="0,0,0,10" Grid.Row="0" Background="White" Click="AddJob"/>
 
         <!-- DataGrid Jobs -->
         <DataGrid Grid.Row="1" AutoGenerateColumns="False" HeadersVisibility="Column" CanUserAddRows="False" Margin="0,0,0,10" IsSynchronizedWithCurrentItem="False">
