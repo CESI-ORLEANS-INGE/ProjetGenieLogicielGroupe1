@@ -90,7 +90,7 @@ namespace EasySave.Views {
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) {
-            if (sender is Button button && button.DataContext is IBackupJobState jobState) {
+            if (sender is System.Windows.Controls.Button button && button.DataContext is IBackupJobState jobState) {
                 jobState.BackupJob.Stop();
             }
         }
