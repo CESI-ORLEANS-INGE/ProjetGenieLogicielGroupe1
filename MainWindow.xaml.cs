@@ -9,7 +9,7 @@ namespace EasySave;
 public partial class MainWindow : Window
 {
     // Declare a variable to store the ViewModel instance
-    private readonly IViewModel _ViewModel;
+    public IViewModel ViewModel { get; private set; }
 
     // Constructor that takes an IViewModel instance as a parameter
     public MainWindow(IViewModel viewModel)

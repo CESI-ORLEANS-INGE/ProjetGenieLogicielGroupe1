@@ -21,6 +21,7 @@ public delegate void JobStateChangedEventHandler(object sender, JobStateChangedE
 public delegate void ConfigurationChangedEventHandler(object sender, ConfigurationChangedEventArgs e);
 
 public interface IViewModel : INotifyPropertyChanged {
+
     /// <summary>
     /// List of all backup jobs.
     /// </summary>
@@ -250,6 +251,91 @@ public class ViewModel : IViewModel {
                 break;
         }
     }
+
+    // Party configuration
+    public string BLanguage
+    {
+        get => Configuration.Language; 
+        set
+        {
+            Configuration.Language = value;
+            OnPropertyChanged(nameof(BLanguage));
+        }
+    }
+
+    
+    public string StateFile
+    {
+        get => Configuration.StateFile;
+        set
+        {
+            Configuration.StateFile = value;
+            OnPropertyChanged(nameof(StateFile));
+        }
+    }
+
+    
+    public string LogFile
+    {
+        get => Configuration.LogFile;
+        set
+        {
+            Configuration.LogFile = value;
+            OnPropertyChanged(nameof(LogFile));
+        }
+    }
+
+
+    public string CryptoFile
+    {
+        get => Configuration.CryptoFile;
+        set
+        {
+            Configuration.CryptoFile = value;
+            OnPropertyChanged(nameof(CryptoFile));
+        }
+    }
+
+
+    public string ExtensionsToEncrypt
+    {
+        get => string.Join(";", Configuration.CryptoExtentions);
+        set
+        {
+            Configuration.CryptoExtentions.Clear();
+            foreach (var key in value.Split(";", StringSplitOptions.RemoveEmptyEntries))
+
+                Configuration.CryptoExtentions.Add(key.Trim());
+            OnPropertyChanged(nameof(ExtensionsToEncrypt));
+        }
+    }
+
+    public string EncryptionKey
+    {
+        get => Configuration.CryptoKey;
+        set
+        {
+            Configuration.CryptoKey = value;
+            OnPropertyChanged(nameof(EncryptionKey));
+            
+        }
+    }
+
+
+    public string Processes
+    {
+       get => string.Join(",", Configuration.Processes);
+       set
+       {
+            Configuration.Processes.Clear();
+            foreach (var key in value.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                Configuration.Processes.Add(key.Trim());
+            OnPropertyChanged(nameof(Processes));
+        }
+    }
+
+
+
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, e);
 
