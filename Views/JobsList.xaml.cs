@@ -3,7 +3,7 @@ using EasySave.Views;
 
 namespace EasySave.Views
 {
-    public partial class JobsList : UserControl
+    public partial class JobsList : System.Windows.Controls.UserControl
     {
         public JobsList()
         {

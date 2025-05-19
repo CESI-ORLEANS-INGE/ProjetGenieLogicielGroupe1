@@ -2,7 +2,7 @@
 
 namespace EasySave.Views
 {
-    partial class Configuration : UserControl
+    partial class Configuration : System.Windows.Controls.UserControl
     {
         public Configuration()
         {
