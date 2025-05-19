@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     private void Logs_Click(object sender, RoutedEventArgs e)
     {
         MainContent.Content = new Logs();
+        var Liste= new LogListWindow();
     }
     private void Configuration_Click(object sender, RoutedEventArgs e)
     {
