@@ -21,7 +21,7 @@
 
     <!-- CONTENU PRINCIPAL -->
     <Grid Margin="10" x:Name="MainGrid">
-        <Grid.RowDefinitions>
+        <Grid.RowDefinitions> 
             <!-- Jobs List -->
             <RowDefinition Height="*"/>
             <!-- Footer -->
@@ -144,7 +144,7 @@
 
                 <Button x:Name="PauseAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_PAUSE_ALL]}"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
                 <Button x:Name="ResumeAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_RESUME_ALL]}"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
-                <Button x:Name="RunAllButton" Content="Run All"  Width="100" Height="30" Grid.Row="0" Click="RunAllButton_Click"/>
+                <Button x:Name="RunAllButton" Content="Run All"  Width="100" Height="30" Grid.Row="0" Click="RunAllButton_Click" Visibility="Hidden"/>
                 <Button x:Name="CancelAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_CANCEL_ALL]}"  Width="100" Height="30" Grid.Row="2" Click="CancelAllButton_Click"/>
             </Grid>
         </Grid>

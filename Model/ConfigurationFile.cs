@@ -71,9 +71,9 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             string logFile = jsonObject["LogFile"]?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
             string cryptoFile = jsonObject["CryptoFile"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
             string cryptoKey = jsonObject["CryptoKey"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
-            ObservableCollection<string> Cryptoextentions = jsonObject["CryptoExtensions"] is JsonArray array
-                ? new ObservableCollection<string>(array.Select(x=>x?.ToString() ?? string.Empty))
-                : new ObservableCollection<string>();
+            List<string> cryptoExtentions = jsonObject["CryptoExtensions"] is JsonArray array
+                ? [.. array.Select(x=>x?.ToString() ?? string.Empty)]
+                : [];
 
             // get the jobs from the json object
             List <IBackupJobConfiguration> jobs = [];
@@ -105,7 +105,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
                 LogFile = logFile,
                 CryptoFile = cryptoFile,
                 CryptoKey = cryptoKey,
-                CryptoExtentions = Cryptoextentions,
+                CryptoExtentions = cryptoExtentions,
                 Jobs = jobs
             });
 

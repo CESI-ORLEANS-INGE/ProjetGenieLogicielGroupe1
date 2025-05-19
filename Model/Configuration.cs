@@ -32,7 +32,7 @@ namespace EasySave.Model {
         ObservableCollection<string> CryptoExtentions { get; set; }
         string CryptoFile { get; set; }
         string CryptoKey { get; set; }
-        List<IBackupJobConfiguration> Jobs { get; set; }
+        ObservableCollection<IBackupJobConfiguration> Jobs { get; set; }
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
         public void RemoveJob(IBackupJobConfiguration jobConfiguration);
@@ -61,8 +61,7 @@ namespace EasySave.Model {
         // Crypto file of the application
         private static string? _CryptoFile;
         // List of jobs
-        private static List<IBackupJobConfiguration>? _Jobs;
-        public List<string> CryptExt { get; set; }
+        private static ObservableCollection<IBackupJobConfiguration>? _Jobs;
 
         /// <summary>
         /// Language of the application
@@ -165,7 +164,7 @@ namespace EasySave.Model {
         /// <summary>
         /// List of jobs
         /// </summary>
-        public List<IBackupJobConfiguration> Jobs {
+        public ObservableCollection<IBackupJobConfiguration> Jobs {
             // getting the jobs list
             get => _Jobs ?? [];
             // setting the jobs list and raising the event
@@ -257,24 +256,24 @@ namespace EasySave.Model {
                 this.CryptoKey = configuration.GetType().GetProperty("CryptoKey")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
             }
             // Check if the crypto extentions are set
-            if (configuration.GetType().GetProperty("CryptoExtentions") is not null) {
+            if (configuration.GetType().GetProperty("CryptoExtentions") is not null && configuration.GetType().GetProperty("CryptoExtentions")!.GetValue(configuration) is not null) { 
                 // Set the crypto extentions from the configuration
-                this.CryptoExtentions = configuration.GetType().GetProperty("CryptoExtentions")?.GetValue(configuration) as ObservableCollection<string> ?? new ObservableCollection<string>();
+                this.CryptoExtentions = [.. (List<string>)configuration.GetType().GetProperty("CryptoExtentions")!.GetValue(configuration)!];
             } else {
                 // If the crypto extentions are not set, initialize them to an empty list
-                this.CryptoExtentions = new ObservableCollection<string>();
+                this.CryptoExtentions = [];
             }
             // Check if the processes are set
-            if (configuration.GetType().GetProperty("Processes") is not null) {
+            if (configuration.GetType().GetProperty("Processes") is not null && configuration.GetType().GetProperty("Processes")!.GetValue(configuration) is not null) {
                 // Set the processes from the configuration
-                this.Processes = configuration.GetType().GetProperty("Processes")?.GetValue(configuration) as ObservableCollection<string> ?? new ObservableCollection<string>();
+                this.Processes = [.. (List<string>)configuration.GetType().GetProperty("Processes")!.GetValue(configuration)!];
             } else {
                 // If the processes are not set, initialize them to an empty list
-                this.Processes = new ObservableCollection<string>();
+                this.Processes = [];
             }
-            if (configuration.GetType().GetProperty("Jobs") is not null) {
+            if (configuration.GetType().GetProperty("Jobs") is not null && configuration.GetType().GetProperty("Jobs")!.GetValue(configuration) is not null) {
                 // Set the jobs list from the configuration
-                this.Jobs = configuration.GetType().GetProperty("Jobs")?.GetValue(configuration) as List<IBackupJobConfiguration> ?? [];
+                this.Jobs = [.. (List<IBackupJobConfiguration>)configuration.GetType().GetProperty("Jobs")!.GetValue(configuration)!];
             } else {
                 // If the jobs list is not set, initialize it to an empty list
                 this.Jobs = [];
