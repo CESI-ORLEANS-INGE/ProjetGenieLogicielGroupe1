@@ -8,6 +8,7 @@
     <UseWPF>true</UseWPF>
     <PublishSingleFile>true</PublishSingleFile>
     <UseWindowsForms>True</UseWindowsForms>
+	<ApplicationIcon>Resources\Images\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,16 +32,21 @@
 
   <ItemGroup>
     <Content Include="Resources\Images\dossier.png">
-    <Content Include="Resources\Icons\arrow-right.png">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	</Content>
+    <Content Include="Resources\Images\arrow-right.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Icons\trash.png">
+    <Content Include="Resources\Images\icon.ico" />
+    <Content Include="Resources\Images\trash.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Resources\Images\scanner.png">
+	  <Content Include="Resources\Images\scanner.png">
+		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
     <Content Include="Resources\Images\logo.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

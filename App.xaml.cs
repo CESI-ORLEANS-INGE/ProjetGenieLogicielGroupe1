@@ -155,7 +155,7 @@ public partial class App : System.Windows.Application
             this.Shutdown();
         } else {
             // DEV
-            App.AllocConsole();
+            //App.AllocConsole();
             MainWindow mainWindow = new(this._ViewModel);
             mainWindow.Show();
         }

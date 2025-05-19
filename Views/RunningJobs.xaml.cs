@@ -12,22 +12,23 @@ using System.ComponentModel;
 
 namespace EasySave.Views {
     partial class RunningJobs : INotifyPropertyChanged {
-        private readonly IViewModel _ViewModel;
+        public IViewModel ViewModel { get; private set; }
         private readonly ObservableCollection<IBackupJobState> _RunningJobList = [];
         public IEnumerable<IBackupJobState> RunningJobList => _RunningJobList;
         private readonly Task _RefreshTask;
         public DateTime? StartedAt => _RunningJobList.Count == 0 ? null : _RunningJobList.Min(job => job.BackupJob.StartedAt);
         public int TotalFilesToCopy => _RunningJobList.Count == 0 ? 0 : (int)_RunningJobList.Sum(job => job.TotalFilesToCopy);
         public int TotalFilesLeft => _RunningJobList.Count == 0 ? 0 : (int)_RunningJobList.Sum(job => job.FilesLeft);
+        public int Progression => _RunningJobList.Count == 0 ? 0 : (int)_RunningJobList.Sum(job => job.Progression) / _RunningJobList.Count;
 
         public RunningJobs(IViewModel viewModel) {
-            this._ViewModel = viewModel;
+            this.ViewModel = viewModel;
 
             InitializeComponent();
 
             this.MainGrid.DataContext = this;
 
-            this._ViewModel.JobStateChanged += this.OnJobStateChanged;
+            this.ViewModel.JobStateChanged += this.OnJobStateChanged;
 
             this._RefreshTask = Task.Run(() => {
                 while (true) {
@@ -38,34 +39,54 @@ namespace EasySave.Views {
                     Task.Delay(1000).Wait();
                 }
             });
+
+            this.Dispatcher.Invoke(() => {
+                this.UpdateList();
+            });
+
+            this.UpdateStats();
+        }
+
+        private void UpdateList() {
+            this._RunningJobList.Clear();
+
+            if (this.ViewModel.BackupState is null) {
+                return;
+            }
+
+            foreach (IBackupJobState jobState in this.ViewModel.BackupState.JobState) {
+                if (jobState.State == State.ACTIVE || jobState.State == State.IN_PROGRESS || jobState.State == State.PAUSED) {
+                    this._RunningJobList.Add(jobState);
+                }
+            }
+            this.RunningJobsList.Items.Refresh();
+        }
+
+        private void UpdateStats() {
+            this.OnPropertyChanged(nameof(StartedAt));
+            this.OnPropertyChanged(nameof(TotalFilesToCopy));
+            this.OnPropertyChanged(nameof(TotalFilesLeft));
+            this.OnPropertyChanged(nameof(Progression));
         }
 
         private void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
             this.Dispatcher.Invoke(() => {
                 if (e.JobState is not null) {
-                    this._RunningJobList.Clear();
-                    foreach (IBackupJobState jobState in this._ViewModel.BackupState.JobState) {
-                        if (jobState.State == State.ACTIVE || jobState.State == State.IN_PROGRESS || jobState.State == State.PAUSED) {
-                            this._RunningJobList.Add(jobState);
-                        }
-                    }
+                    this.UpdateList();
                 }
-                this.RunningJobsList.Items.Refresh();
             });
 
-            this.OnPropertyChanged(nameof(StartedAt));
-            this.OnPropertyChanged(nameof(TotalFilesToCopy));
-            this.OnPropertyChanged(nameof(TotalFilesLeft));
+            this.UpdateStats();
         }
 
         private void CancelAllButton_Click(object sender, RoutedEventArgs e) {
-            foreach (IBackupJob job in _ViewModel.BackupJobs) {
+            foreach (IBackupJob job in ViewModel.BackupJobs) {
                 job.Stop();
             }
         }
 
         private void RunAllButton_Click(object sender, RoutedEventArgs e) {
-            this._ViewModel.RunCommandRun([.. this._ViewModel.Configuration.Jobs.Select(j => j.Name)]);
+            this.ViewModel.RunCommandRun([.. this.ViewModel.Configuration.Jobs.Select(j => j.Name)]);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) {
