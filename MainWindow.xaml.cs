@@ -15,26 +15,28 @@ public partial class MainWindow : Window
     public MainWindow(IViewModel viewModel)
     {
         // get the ViewModel instance from the parameter
-        this._ViewModel = viewModel;
+        this.ViewModel = viewModel;
 
         // Initialize the ViewModel instance
         InitializeComponent();
 
         // Set the DataContext of the MainWindow to the ViewModel instance
         MainContent.Content = new JobsList(viewModel);
+
+        this.DataContext = this;
     }
 
     // Event handlers for menu item clicks
     private void JobsList_Click(object sender, RoutedEventArgs e)
     {
         // Set the content of the MainContent to the JobsList view
-        MainContent.Content = new JobsList(_ViewModel); // Fixed: Use the instance field _ViewModel instead of the type ViewModel
+        MainContent.Content = new JobsList(ViewModel); // Fixed: Use the instance field _ViewModel instead of the type ViewModel
     }
     // Event handler for the "Running Jobs" menu item click
     private void RunningJobs_Click(object sender, RoutedEventArgs e)
     {
         // Set the content of the MainContent to the RunningJobs view
-        MainContent.Content = new RunningJobs(this._ViewModel);
+        MainContent.Content = new RunningJobs(this.ViewModel);
     }
     // Event handler for the "Logs" menu item click
     private void Logs_Click(object sender, RoutedEventArgs e)
@@ -46,7 +48,7 @@ public partial class MainWindow : Window
     private void Configuration_Click(object sender, RoutedEventArgs e)
     {
         // Set the content of the MainContent to the Configuration view
-        MainContent.Content = new Configuration();
+        MainContent.Content = new Configuration(ViewModel);
     }
 
 }

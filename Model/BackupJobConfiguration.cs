@@ -20,7 +20,7 @@ namespace EasySave.Model {
         private string? _Type;
 
         public string Name {
-            get => _Name ?? throw new InvalidOperationException("Name is not set");
+            get => _Name ?? string.Empty;
             set {
                 this._Name = value;
                 this.OnJobConfigurationChanged();
@@ -28,7 +28,7 @@ namespace EasySave.Model {
         }
 
         public string Source {
-            get => _Source ?? throw new InvalidOperationException("Source is not set");
+            get => _Source ?? string.Empty;
             set {
                 this._Source = value;
                 this.OnJobConfigurationChanged();
@@ -36,7 +36,7 @@ namespace EasySave.Model {
         }
 
         public string Destination {
-            get => _Destination ?? throw new InvalidOperationException("Destination is not set");
+            get => _Destination ?? string.Empty;
             set {
                 this._Destination = value;
                 this.OnJobConfigurationChanged();
@@ -44,7 +44,7 @@ namespace EasySave.Model {
         }
 
         public string Type {
-            get => _Type ?? throw new InvalidOperationException("Type is not set");
+            get => _Type ?? "Complete";
             set {
                 this._Type = value;
                 this.OnJobConfigurationChanged();

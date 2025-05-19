@@ -226,8 +226,6 @@ public class ViewModel : IViewModel {
         Configuration.LogFile = logFilePath;
         Logger.SetLogFile(logFilePath);
     }
-
-
     public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
         this.LanguageChanged?.Invoke(this, e);
     }
@@ -252,84 +250,65 @@ public class ViewModel : IViewModel {
         }
     }
 
-    // Party configuration
-    public string BLanguage
-    {
-        get => Configuration.Language; 
-        set
-        {
+    // Party configuration 🎉
+    public string BLanguage {
+        get => Configuration.Language;
+        set {
             Configuration.Language = value;
             OnPropertyChanged(nameof(BLanguage));
         }
     }
 
-    
-    public string StateFile
-    {
+
+    public string StateFile {
         get => Configuration.StateFile;
-        set
-        {
+        set {
             Configuration.StateFile = value;
             OnPropertyChanged(nameof(StateFile));
         }
     }
 
-    
-    public string LogFile
-    {
+
+    public string LogFile {
         get => Configuration.LogFile;
-        set
-        {
+        set {
             Configuration.LogFile = value;
             OnPropertyChanged(nameof(LogFile));
         }
     }
 
 
-    public string CryptoFile
-    {
+    public string CryptoFile {
         get => Configuration.CryptoFile;
-        set
-        {
+        set {
             Configuration.CryptoFile = value;
             OnPropertyChanged(nameof(CryptoFile));
         }
     }
 
 
-    public string ExtensionsToEncrypt
-    {
+    public string ExtensionsToEncrypt {
         get => string.Join(";", Configuration.CryptoExtentions);
-        set
-        {
-            Configuration.CryptoExtentions.Clear();
-            foreach (var key in value.Split(";", StringSplitOptions.RemoveEmptyEntries))
-
-                Configuration.CryptoExtentions.Add(key.Trim());
+        set {
+            Configuration.CryptoExtentions = [.. value.Split(';')];
             OnPropertyChanged(nameof(ExtensionsToEncrypt));
         }
     }
 
-    public string EncryptionKey
-    {
+    public string EncryptionKey {
         get => Configuration.CryptoKey;
-        set
-        {
+        set {
             Configuration.CryptoKey = value;
             OnPropertyChanged(nameof(EncryptionKey));
-            
+
         }
     }
 
 
-    public string Processes
-    {
-       get => string.Join(",", Configuration.Processes);
-       set
-       {
-            Configuration.Processes.Clear();
-            foreach (var key in value.Split(",", StringSplitOptions.RemoveEmptyEntries))
-                Configuration.Processes.Add(key.Trim());
+    public string Processes {
+        get => string.Join(";", Configuration.Processes);
+        set {
+            Configuration.Processes = [.. value.Split(";")];
             OnPropertyChanged(nameof(Processes));
         }
     }
