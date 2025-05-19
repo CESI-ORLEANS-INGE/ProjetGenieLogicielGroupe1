@@ -30,16 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Icons\arrow-right.png" />
-    <None Remove="Resources\Icons\arrow-right.svg" />
-    <None Remove="Resources\Icons\trash.png" />
-    <None Remove="Resources\Images\logo.png" />
-    <None Remove="Resources\Images\logo.svg" />
-    <None Remove="Resources\Language\EN.json" />
-    <None Remove="Resources\Language\FR.json" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Content Include="Resources\Images\dossier.png">
     <Content Include="Resources\Icons\arrow-right.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -49,6 +40,7 @@
     <Content Include="Resources\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Resources\Images\scanner.png">
     <Content Include="Resources\Images\logo.svg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

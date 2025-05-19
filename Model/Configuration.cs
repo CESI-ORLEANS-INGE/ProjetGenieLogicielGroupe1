@@ -59,6 +59,7 @@ namespace EasySave.Model {
         private static string? _CryptoFile;
         // List of jobs
         private static List<IBackupJobConfiguration>? _Jobs;
+        public List<string> CryptExt { get; set; }
 
         /// <summary>
         /// Language of the application
