@@ -154,7 +154,7 @@ public partial class App : Application {
             this.Shutdown();
         } else {
             // DEV
-            App.AllocConsole();
+            //App.AllocConsole();
             MainWindow mainWindow = new(this._ViewModel);
             mainWindow.Show();
         }
