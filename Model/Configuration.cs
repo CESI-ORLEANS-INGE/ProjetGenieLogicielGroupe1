@@ -23,6 +23,7 @@ namespace EasySave.Model {
         public const string DEFAULT_STATE_FILE = "state.json";
         public const string DEFAULT_LOG_FILE = "logs.json";
         public const string DEFAULT_CRYPTO_FILE = "CryptoSoft/CryptoSoft.exe";
+        public const string DEFAULT_CRYPTO_KEY = "7A2F8D15E9C3B6410D5F78A92E64B0C3DB91A527F836E45C0B2D7498C1E5A3F6";
 
         string Language { get; set; }
         string StateFile { get; set;  }
@@ -53,6 +54,7 @@ namespace EasySave.Model {
         // Log file of the application
         private static string? _LogFile;
         // List of processes to detect
+        private static string? _CryptoKey;
         private static ObservableCollection<string>? _Processes;
         // List of crypt extentions
         private static ObservableCollection<string>? _CryptExtentions;
@@ -100,7 +102,18 @@ namespace EasySave.Model {
             }
         }
 
-        public string CryptoKey { get; set; }
+        public string CryptoKey { 
+            get => _CryptoKey ?? IConfiguration.DEFAULT_CRYPTO_KEY;
+            set {
+                // set the state file
+                _CryptoKey = value;
+                // set the configuration changed event
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs
+                {
+                    // set the new state file to save
+                    PropertyName = nameof(CryptoKey)
+                });
+            } }
 
         public string LogFile {
             // check if the log file is set
@@ -237,6 +250,10 @@ namespace EasySave.Model {
             if (configuration.GetType().GetProperty("CryptoFile") is not null) {
                 this.CryptoFile = configuration.GetType().GetProperty("CryptoFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
             }
+            if (configuration.GetType().GetProperty("CryptoKey") is not null)
+            {
+                this.CryptoKey = configuration.GetType().GetProperty("CryptoKey")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
+            }
             // Check if the crypto extentions are set
             if (configuration.GetType().GetProperty("CryptoExtentions") is not null) {
                 // Set the crypto extentions from the configuration
@@ -322,6 +339,7 @@ namespace EasySave.Model {
                 ["StateFile"] = this.StateFile,
                 ["LogFile"] = this.LogFile,
                 ["CryptoFile"] = this.CryptoFile,
+                ["CryptoKey"] = this.CryptoKey,
                 ["Processes"] = new JsonArray([.. this.Processes]),
                 ["CryptoExtentions"] = new JsonArray([.. this.CryptoExtentions]),
                 ["Jobs"] = new JsonArray([.. this.Jobs.Select(j => new JsonObject {

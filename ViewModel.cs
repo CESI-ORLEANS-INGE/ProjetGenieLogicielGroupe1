@@ -285,14 +285,24 @@ public class ViewModel : IViewModel {
         }
     }
 
-    
+    public string CryptoFile
+    {
+        get => Configuration.CryptoFile;
+        set
+        {
+            Configuration.CryptoFile = value;
+            OnPropertyChanged(nameof(CryptoFile));
+        }
+    }
+
+
     public string ExtensionsToEncrypt
     {
-        get => string.Join(",", Configuration.CryptoExtentions);
+        get => string.Join(";", Configuration.CryptoExtentions);
         set
         {
             Configuration.CryptoExtentions.Clear();
-            foreach (var key in value.Split(",", StringSplitOptions.RemoveEmptyEntries))
+            foreach (var key in value.Split(";", StringSplitOptions.RemoveEmptyEntries))
                 Configuration.CryptoExtentions.Add(key.Trim());
             OnPropertyChanged(nameof(ExtensionsToEncrypt));
         }
@@ -309,15 +319,17 @@ public class ViewModel : IViewModel {
         }
     }
 
-    //public string Programs
-    //{
-    //    get => string.Join(",", Configuration.CryptoFile);
-    //    set
-    //    {
-    //        Configuration.CryptoFile = value;
-    //        OnPropertyChanged(nameof(Programs));
-    //    }
-    //}
+    public string Processes
+    {
+       get => string.Join(",", Configuration.Processes);
+       set
+       {
+            Configuration.Processes.Clear();
+            foreach (var key in value.Split(",", StringSplitOptions.RemoveEmptyEntries))
+                Configuration.Processes.Add(key.Trim());
+            OnPropertyChanged(nameof(Processes));
+        }
+    }
 
 
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {

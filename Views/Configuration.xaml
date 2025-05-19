@@ -2,9 +2,9 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto" Width="Auto">
-
     <Grid Grid.Column="1" Height="Auto">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -15,42 +15,43 @@
         <!-- Language -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
             <TextBlock Text="Language:" Width="120" VerticalAlignment="Center"/>
-            <ComboBox Width="100" SelectedItem="{Binding BLanguage}">
+            <ComboBox Width="100" SelectedItem="{Binding BLanguage, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <ComboBoxItem Content="FR"/>
                 <ComboBoxItem Content="EN"/>
             </ComboBox>
         </StackPanel>
-
         <!-- State File Path -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="1">
             <TextBlock Text="State File:" Width="120" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding StateFile}" Width="300"/>
+            <TextBox Text="{Binding StateFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="300"/>
             <Button Content="Browse" Width="80" Margin="10,0,0,0" Click="StateFileClick"/>
         </StackPanel>
-
         <!-- Log File Path -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="2">
             <TextBlock Text="Log File:" Width="120" VerticalAlignment="Center"/>
-            <TextBox Text="{Binding LogFile}" Width="300"/>
+            <TextBox Text="{Binding LogFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="300"/>
             <Button Content="Browse" Width="80" Margin="10,0,0,0" Click="LogFileClick"/>
         </StackPanel>
-
-        <!-- Extensions to Encrypt -->
+        <!-- CryptoFile -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="3">
-            <TextBlock Text="Extensions to encrypt:" Width="120" VerticalAlignment="Top"/>
-            <TextBox Text="{Binding ExtensionsToEncrypt, UpdateSourceTrigger=PropertyChanged}" Width="300" AcceptsReturn="True" Height="17" TextWrapping="Wrap"/>
+            <TextBlock Text="Crypto File:" Width="120" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding CryptoFile, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="300"/>
+            <Button Content="Browse" Width="80" Margin="10,0,0,0" Click="CryptoFileClick"/>
         </StackPanel>
-
         <!-- Encryption key -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="4">
-            <TextBlock Text="Encryption key:" Width="120" VerticalAlignment="Top"/>
-            <TextBox Text="{Binding EncryptionKey, UpdateSourceTrigger=PropertyChanged}" Width="300" AcceptsReturn="True" Height="17" TextWrapping="Wrap"/>
+            <TextBlock Text="Encryption key:" Width="120" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding EncryptionKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="300"/>
         </StackPanel>
-
-        <!-- Programs -->
+        <!-- Extensions to Encrypt -->
         <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="5">
-            <TextBlock Text="Programs:" Width="120"/>
-            <TextBox Text="{Binding Programs, UpdateSourceTrigger=PropertyChanged}" Width="300" AcceptsReturn="True" Height="17" TextWrapping="Wrap"/>
+            <TextBlock Text="Extensions to encrypt:" Width="120" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding ExtensionsToEncrypt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="300"/>
+        </StackPanel>
+        <!-- Processes -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="6">
+            <TextBlock Text="Processes:" Width="120" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding Processes, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="300"/>
         </StackPanel>
     </Grid>
 </UserControl>

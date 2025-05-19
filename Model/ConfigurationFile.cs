@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+
 
 namespace EasySave.Model;
 
@@ -68,9 +70,13 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             string stateFile = jsonObject["StateFile"]?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
             string logFile = jsonObject["LogFile"]?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
             string cryptoFile = jsonObject["CryptoFile"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
+            string cryptoKey = jsonObject["CryptoKey"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
+            ObservableCollection<string> Cryptoextentions = jsonObject["CryptoExtensions"] is JsonArray array
+                ? new ObservableCollection<string>(array.Select(x=>x?.ToString() ?? string.Empty))
+                : new ObservableCollection<string>();
 
             // get the jobs from the json object
-            List<IBackupJobConfiguration> jobs = [];
+            List <IBackupJobConfiguration> jobs = [];
             if (jsonObject["Jobs"] is JsonArray jobsArray) {
                 for (int i = 0; i < jobsArray.Count; i++) {
                     JsonNode? job = jobsArray[i];
@@ -98,6 +104,8 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
                 StateFile = stateFile,
                 LogFile = logFile,
                 CryptoFile = cryptoFile,
+                CryptoKey = cryptoKey,
+                CryptoExtentions = Cryptoextentions,
                 Jobs = jobs
             });
 
