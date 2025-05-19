@@ -102,6 +102,7 @@ namespace EasySave.Model {
             }
         }
 
+
         public string CryptoKey { 
             get => _CryptoKey ?? IConfiguration.DEFAULT_CRYPTO_KEY;
             set {
@@ -114,6 +115,7 @@ namespace EasySave.Model {
                     PropertyName = nameof(CryptoKey)
                 });
             } }
+
 
         public string LogFile {
             // check if the log file is set

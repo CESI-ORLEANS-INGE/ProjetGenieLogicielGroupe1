@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Windows.Controls;
 using EasySave.Model;
+
 using Microsoft.Win32;
 
 namespace EasySave.Views
@@ -16,6 +17,7 @@ namespace EasySave.Views
             this.DataContext = _ViewModel;
         }
         
+
         private void StateFileClick (object sender, EventArgs e) {
             var dialog = new OpenFileDialog
             {
@@ -29,6 +31,7 @@ namespace EasySave.Views
                 if (DataContext is ViewModel vm)
                 {
                     vm.StateFile = selectedFilePath;
+
                 }
             }
         }
@@ -48,6 +51,7 @@ namespace EasySave.Views
                 }
             }
 
+
         }
         private void CryptoFileClick(object sender, EventArgs e)
         {
@@ -66,5 +70,6 @@ namespace EasySave.Views
                 }
             }
         }
+
         }
 }

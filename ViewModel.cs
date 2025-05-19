@@ -285,6 +285,7 @@ public class ViewModel : IViewModel {
         }
     }
 
+
     public string CryptoFile
     {
         get => Configuration.CryptoFile;
@@ -303,6 +304,7 @@ public class ViewModel : IViewModel {
         {
             Configuration.CryptoExtentions.Clear();
             foreach (var key in value.Split(";", StringSplitOptions.RemoveEmptyEntries))
+
                 Configuration.CryptoExtentions.Add(key.Trim());
             OnPropertyChanged(nameof(ExtensionsToEncrypt));
         }
@@ -319,6 +321,7 @@ public class ViewModel : IViewModel {
         }
     }
 
+
     public string Processes
     {
        get => string.Join(",", Configuration.Processes);
@@ -330,6 +333,7 @@ public class ViewModel : IViewModel {
             OnPropertyChanged(nameof(Processes));
         }
     }
+
 
 
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
