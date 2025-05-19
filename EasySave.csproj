@@ -31,11 +31,15 @@
   <ItemGroup>
     <None Remove="logo.png" />
     <None Remove="Resources\Images\logo.png" />
+    <None Remove="Resources\Language\FR.json" />
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Resources\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Language\FR.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
