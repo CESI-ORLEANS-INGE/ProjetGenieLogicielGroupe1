@@ -21,10 +21,11 @@ public delegate void JobStateChangedEventHandler(object sender, JobStateChangedE
 public delegate void ConfigurationChangedEventHandler(object sender, ConfigurationChangedEventArgs e);
 
 public interface IViewModel : INotifyPropertyChanged {
+
     /// <summary>
     /// List of all backup jobs.
     /// </summary>
-    List<IBackupJob> BackupJobs { get; }
+    List<IBackupJob> BackupJobs { get; set; }
 
     /// <summary>
     /// Backup state
@@ -60,6 +61,11 @@ public interface IViewModel : INotifyPropertyChanged {
     /// Runs the command to change the application language.
     /// </summary>
     void RunCommandLanguage(string language);
+
+    /// <summary>
+    /// Runs the command to change the log file path.
+    /// </summary>
+    void RunCommandLog(string logFilePath);
 
     /// <summary>
     /// Called when the language is changed.
@@ -116,7 +122,9 @@ public class ViewModel : IViewModel {
         this.Logger = new Logger.Logger(this.Configuration.LogFile);
     }
 
-    public void RunCommandRun(List<string> indexOrNameList) {
+    public async void RunCommandRun(List<string> indexOrNameList) {
+        const int MAX_CONCURRENT_JOBS = 1;
+
         List<IBackupJobConfiguration> jobsToRun = [];
 
         foreach (string indexOrName in indexOrNameList) {
@@ -147,22 +155,21 @@ public class ViewModel : IViewModel {
 
         IStateFile file = new StateFile(this.Configuration.StateFile);
         using (this.BackupState = new BackupState(file))
-        this.BackupState.JobStateChanged += this.OnJobStateChanged;
+            this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
-        foreach (IBackupJob job in this.BackupJobs) {
-            job.Analyze();
-            this.BackupState.CreateJobState(job);
-        }
-
-        foreach (IBackupJob job in this.BackupJobs) {
-            job.Run();
-        }
+        SemaphoreSlim semaphore = new(MAX_CONCURRENT_JOBS);
+        await Task.WhenAll([.. this.BackupJobs.Select(job => Task.Run(async () => {
+            await semaphore.WaitAsync();
+            try {
+                job.Analyze();
+                this.BackupState.CreateJobState(job);
+                await job.Run();
+            } finally {
+                semaphore.Release();
+            }
+        }))]);
     }
     public void RunCommandAdd(string name, string source, string destination, string type) {
-        if (this.Configuration.Jobs.Count >= 5) {
-            throw new Exception("Maximum number of backup jobs reached (5).");
-        }
-        
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
             throw new Exception($"A backup job with the name '{name}' already exists.");
         }
@@ -215,26 +222,99 @@ public class ViewModel : IViewModel {
     public void RunCommandLanguage(string language) {
         this.Language.SetLanguage(language);
     }
-
-
+    public void RunCommandLog(string logFilePath) {
+        Configuration.LogFile = logFilePath;
+        Logger.SetLogFile(logFilePath);
+    }
     public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
         this.LanguageChanged?.Invoke(this, e);
     }
     public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
         this.JobStateChanged?.Invoke(this, e);
 
-        if (e.JobState?.State == State.IN_PROGRESS) {
-            IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTask];
-            this.Logger.Info(new Log {
-                JobName = e.JobState.BackupJob.Name,
-                Filesize = task.Source?.GetSize() ?? 0,
-                Source = task.Source?.GetPath() ?? string.Empty,
-                Destination = task.Destination?.GetPath() ?? string.Empty,
-                TaskType = task is BackupCopyTask ? "Copy" : "Remove",
-                TransfertDuration = task.GetDuration()
-            });
+        switch (e.JobState?.State) {
+            case State.IN_PROGRESS:
+                IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTaskIndex];
+                this.Logger.Info(new Log {
+                    JobName = e.JobState.BackupJob.Name,
+                    Filesize = task.Source?.GetSize() ?? 0,
+                    Source = task.Source?.GetPath() ?? string.Empty,
+                    Destination = task.Destination?.GetPath() ?? string.Empty,
+                    TaskType = task is BackupCopyTask ? "Copy" : "Remove",
+                    TransfertDuration = task.GetDuration()
+                });
+                break;
+            case State.CANCEL:
+                Console.WriteLine("Job Cancelled");
+                break;
         }
     }
+
+    // Party configuration 🎉
+    public string BLanguage {
+        get => Configuration.Language;
+        set {
+            Configuration.Language = value;
+            OnPropertyChanged(nameof(BLanguage));
+        }
+    }
+
+
+    public string StateFile {
+        get => Configuration.StateFile;
+        set {
+            Configuration.StateFile = value;
+            OnPropertyChanged(nameof(StateFile));
+        }
+    }
+
+
+    public string LogFile {
+        get => Configuration.LogFile;
+        set {
+            Configuration.LogFile = value;
+            OnPropertyChanged(nameof(LogFile));
+        }
+    }
+
+
+    public string CryptoFile {
+        get => Configuration.CryptoFile;
+        set {
+            Configuration.CryptoFile = value;
+            OnPropertyChanged(nameof(CryptoFile));
+        }
+    }
+
+
+    public string ExtensionsToEncrypt {
+        get => string.Join(";", Configuration.CryptoExtentions);
+        set {
+            Configuration.CryptoExtentions = [.. value.Split(';')];
+            OnPropertyChanged(nameof(ExtensionsToEncrypt));
+        }
+    }
+
+    public string EncryptionKey {
+        get => Configuration.CryptoKey;
+        set {
+            Configuration.CryptoKey = value;
+            OnPropertyChanged(nameof(EncryptionKey));
+
+        }
+    }
+
+
+    public string Processes {
+        get => string.Join(";", Configuration.Processes);
+        set {
+            Configuration.Processes = [.. value.Split(";")];
+            OnPropertyChanged(nameof(Processes));
+        }
+    }
+
+
+
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, e);
 

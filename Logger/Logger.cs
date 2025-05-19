@@ -7,6 +7,8 @@ namespace EasySave.Logger {
         // General logging method
         public void Log(Log entry);
 
+        public void SetLogFile(string filePath); // Method to set the log file path
+
         // Specific methods for each log level
         public void Info(Log entry);
         public void Debug(Log entry);
@@ -18,12 +20,16 @@ namespace EasySave.Logger {
     // Class implementing the logging functionality
     public class Logger : ILogger {
         // File path where the logs will be stored
-        private readonly string _filePath;
+        private string _filePath;
 
         // Constructor that allows specifying a custom log file path
         // Defaults to "logs.txt" if no path is provided
         public Logger(string filePath = "logs.txt") {
             _filePath = filePath;
+        }
+
+        public void SetLogFile(string filePath) {
+            _filePath = filePath; // Update the log file path
         }
 
         // Core method to log an entry

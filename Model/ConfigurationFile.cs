@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+
 
 namespace EasySave.Model;
 
@@ -27,19 +29,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
     /// param name="configuration"></param>
     /// returns></returns>
     public void Save(IConfiguration configuration) {
-        var jsonObject = new JsonObject {
-            // put the configuration in a json object
-            // put the language in the json object
-            ["Language"] = configuration.Language,
-            ["LogFile"] = configuration.LogFile,
-            ["Jobs"] = new JsonArray([.. configuration.Jobs.Select(j => new JsonObject {
-                // put all attributes of the job in the json object
-                ["Name"] = j.Name,
-                ["Source"] = j.Source,
-                ["Destination"] = j.Destination,
-                ["Type"] = j.Type
-            })])
-        };
+        var jsonObject = configuration.ToJSON();
 
         // put the state file in the json object
         string jsonString = jsonObject.ToJsonString(new JsonSerializerOptions {
@@ -79,9 +69,14 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             // get the state file from the json object
             string stateFile = jsonObject["StateFile"]?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
             string logFile = jsonObject["LogFile"]?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
+            string cryptoFile = jsonObject["CryptoFile"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
+            string cryptoKey = jsonObject["CryptoKey"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
+            List<string> cryptoExtentions = jsonObject["CryptoExtensions"] is JsonArray array
+                ? [.. array.Select(x=>x?.ToString() ?? string.Empty)]
+                : [];
 
             // get the jobs from the json object
-            List<IBackupJobConfiguration> jobs = [];
+            List <IBackupJobConfiguration> jobs = [];
             if (jsonObject["Jobs"] is JsonArray jobsArray) {
                 for (int i = 0; i < jobsArray.Count; i++) {
                     JsonNode? job = jobsArray[i];
@@ -108,6 +103,9 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
                 Language = language,
                 StateFile = stateFile,
                 LogFile = logFile,
+                CryptoFile = cryptoFile,
+                CryptoKey = cryptoKey,
+                CryptoExtentions = cryptoExtentions,
                 Jobs = jobs
             });
 

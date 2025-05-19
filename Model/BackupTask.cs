@@ -24,6 +24,8 @@ public interface IBackupTask {
     /// </summary>
     public DateTime? EndTime { get; set; }
 
+    public bool IsRemoveTask { get; }
+
     public double CryptDuration { get; set; }
 
     /// <summary>
@@ -49,6 +51,8 @@ public abstract class BackupTask(IEntryHandler? source, IEntryHandler? destinati
     public DateTime? EndTime { get; set; }
     public double CryptDuration { get; set; }
 
+    public bool IsRemoveTask => false;
+
     public double GetDuration() {
         if (StartTime == null || EndTime == null) {
             return 0;
@@ -65,3 +69,10 @@ public abstract class BackupTask(IEntryHandler? source, IEntryHandler? destinati
     protected abstract void Algorithm();
 } 
 
+class BackupVoidTask : BackupTask {
+    public BackupVoidTask() : base(null, null) { }
+
+    protected override void Algorithm() {
+        // No operation
+    }
+}

@@ -33,11 +33,15 @@ namespace EasySave.Model {
         /// <summary>
         /// The job is paused.
         /// </summary>
-        BREAK,
+        PAUSED,
         /// <summary>
         /// The job has resumed after a pause.
         /// </summary>
-        RESUMED
+        RESUMED,
+        /// <summary>
+        /// The job has been cancelled.
+        /// </summary>
+        CANCEL,
     }
     /// <summary>
     /// Represents the state of a backup job at a given time.
@@ -143,6 +147,7 @@ namespace EasySave.Model {
             backupJob.BackupJobResumed += OnJobResumed;
             backupJob.BackupJobFinished += OnJobFinished;
             backupJob.BackupJobCancelled += OnJobCancelled;
+            backupJob.BackupJobError += OnJobError;
         }
 
         /// <summary>
@@ -168,12 +173,12 @@ namespace EasySave.Model {
 
             this.SourceFilePath = task.Source?.GetPath() ?? string.Empty;
             this.DestinationFilePath = task.Destination?.GetPath() ?? string.Empty;
-            this.Progression = (int)((this.TotalFilesToCopy - this.FilesLeft) / this.TotalFilesToCopy * 100);
+            this.Progression = this.BackupJob.Tasks.Count > 0 ? (int)Math.Round((double)this.BackupJob.CurrentTaskIndex / this.BackupJob.Tasks.Count * 100) : 0;
 
             this.RaiseStateChanged();
         }
         public void OnJobPaused(object sender, BackupJobEventArgs e) {
-            this.State = State.BREAK;
+            this.State = State.PAUSED;
             this.RaiseStateChanged();
         }
         public void OnJobResumed(object sender, BackupJobEventArgs e) {
@@ -185,6 +190,10 @@ namespace EasySave.Model {
             this.RaiseStateChanged();
         }
         public void OnJobCancelled(object sender, BackupJobEventArgs e) {
+            this.State = State.CANCEL;
+            this.RaiseStateChanged();
+        }
+        public void OnJobError(object sender, BackupJobEventArgs e) {
             this.State = State.ERROR;
             this.RaiseStateChanged();
         }
@@ -196,6 +205,7 @@ namespace EasySave.Model {
             this.BackupJob.BackupJobResumed -= this.OnJobResumed;
             this.BackupJob.BackupJobFinished -= this.OnJobFinished;
             this.BackupJob.BackupJobCancelled -= this.OnJobCancelled;
+            this.BackupJob.BackupJobError -= this.OnJobError;
             this.BackupJob = null!;
 
             GC.SuppressFinalize(this);

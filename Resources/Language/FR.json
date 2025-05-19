@@ -4,6 +4,7 @@
   "MENU_OPTION_ADD": "Ajouter un travail de sauvegarde",
   "MENU_OPTION_REMOVE": "Supprimer un travail de sauvegarde",
   "MENU_OPTION_LANGUAGE": "Changer la langue",
+  "MENU_OPTION_LOG": "Changer le chemin du fichier de journalisation",
   "MENU_CHOICE": "Choisissez une option",
   "LANGUAGE_INPUT": "Choisissez une langue",
   "LANGUAGE_NOT_FOUND": "Langue non trouvée",
@@ -30,5 +31,18 @@
   "JOB_STATE_IN_PROGRESS": "Tâche de sauvegarde en cours",
   "JOB_STATE_ENDED": "Tâche de sauvegarde terminée",
   "MENU_OPTION_CONFIGURATION": "Afficher la configuration",
-  "MENU_OPTION_RELOAD": "Recharger la configuration"
+  "MENU_OPTION_RELOAD": "Recharger la configuration",
+  "LOG_INPUT": "Entrez le chemin du fichier de journalisation",
+  "VIEW_RUNNING_STARTED_AT": "Débuté à :",
+  "VIEW_RUNNING_PAUSE": "Pause",
+  "VIEW_RUNNING_PAUSE_ALL": "Tout mettre en pause",
+  "VIEW_RUNNING_RESUME": "Relancer",
+  "VIEW_RUNNING_RESUME_ALL": "Tout relancer",
+  "VIEW_RUNNING_CANCEL": "Annuler",
+  "VIEW_RUNNING_CANCEL_ALL": "Tout annuler",
+  "VIEW_RUNNING_FILE_COPY": "À copier :",
+  "VIEW_MENU_JOB_LIST": "Liste des travaux",
+  "VIEW_MENU_RUNNING_JOBS": "Travaux en cours",
+  "VIEW_MENU_LOGS": "Journaux",
+  "VIEW_MENU_CONFIGURATION": "Configuration"
 }

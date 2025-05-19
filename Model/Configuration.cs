@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace EasySave.Model {
     /// <summary>
@@ -20,6 +22,8 @@ namespace EasySave.Model {
         public const string DEFAULT_LANGUAGE = "FR";
         public const string DEFAULT_STATE_FILE = "state.json";
         public const string DEFAULT_LOG_FILE = "logs.json";
+        public const string DEFAULT_CRYPTO_FILE = "CryptoSoft/CryptoSoft.exe";
+        public const string DEFAULT_CRYPTO_KEY = "7A2F8D15E9C3B6410D5F78A92E64B0C3DB91A527F836E45C0B2D7498C1E5A3F6";
 
         string Language { get; set; }
         string StateFile { get; set;  }
@@ -27,11 +31,12 @@ namespace EasySave.Model {
         ObservableCollection<string> Processes { get; set; }
         ObservableCollection<string> CryptoExtentions { get; set; }
         string CryptoFile { get; set; }
-        List<IBackupJobConfiguration> Jobs { get; set; }
-        public List<string> CryptExt { get; set; }
+        string CryptoKey { get; set; }
+        ObservableCollection<IBackupJobConfiguration> Jobs { get; set; }
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
         public void RemoveJob(IBackupJobConfiguration jobConfiguration);
+        public JsonObject ToJSON();
 
         event ConfigurationChangedEventHandler ConfigurationChanged;
     }
@@ -49,15 +54,14 @@ namespace EasySave.Model {
         // Log file of the application
         private static string? _LogFile;
         // List of processes to detect
+        private static string? _CryptoKey;
         private static ObservableCollection<string>? _Processes;
         // List of crypt extentions
         private static ObservableCollection<string>? _CryptExtentions;
         // Crypto file of the application
         private static string? _CryptoFile;
         // List of jobs
-        private static List<IBackupJobConfiguration>? _Jobs;
-        public string CryptoFile;
-        public List<string> CryptExt { get; set; }
+        private static ObservableCollection<IBackupJobConfiguration>? _Jobs;
 
         /// <summary>
         /// Language of the application
@@ -96,6 +100,21 @@ namespace EasySave.Model {
                 });
             }
         }
+
+
+        public string CryptoKey { 
+            get => _CryptoKey ?? IConfiguration.DEFAULT_CRYPTO_KEY;
+            set {
+                // set the state file
+                _CryptoKey = value;
+                // set the configuration changed event
+                this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs
+                {
+                    // set the new state file to save
+                    PropertyName = nameof(CryptoKey)
+                });
+            } }
+
 
         public string LogFile {
             // check if the log file is set
@@ -145,7 +164,7 @@ namespace EasySave.Model {
         /// <summary>
         /// List of jobs
         /// </summary>
-        public List<IBackupJobConfiguration> Jobs {
+        public ObservableCollection<IBackupJobConfiguration> Jobs {
             // getting the jobs list
             get => _Jobs ?? [];
             // setting the jobs list and raising the event
@@ -224,13 +243,37 @@ namespace EasySave.Model {
                 // Set the state file from the configuration
                 this.StateFile = configuration.GetType().GetProperty("StateFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
             }
-            // Check if the jobs list is set
+            // Check if the log file is set
             if (configuration.GetType().GetProperty("LogFile") is not null) {
                 this.LogFile = configuration.GetType().GetProperty("LogFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
             }
-            if (configuration.GetType().GetProperty("Jobs") is not null) {
+            // Check if the crypto file is set
+            if (configuration.GetType().GetProperty("CryptoFile") is not null) {
+                this.CryptoFile = configuration.GetType().GetProperty("CryptoFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
+            }
+            if (configuration.GetType().GetProperty("CryptoKey") is not null)
+            {
+                this.CryptoKey = configuration.GetType().GetProperty("CryptoKey")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
+            }
+            // Check if the crypto extentions are set
+            if (configuration.GetType().GetProperty("CryptoExtentions") is not null && configuration.GetType().GetProperty("CryptoExtentions")!.GetValue(configuration) is not null) { 
+                // Set the crypto extentions from the configuration
+                this.CryptoExtentions = [.. (List<string>)configuration.GetType().GetProperty("CryptoExtentions")!.GetValue(configuration)!];
+            } else {
+                // If the crypto extentions are not set, initialize them to an empty list
+                this.CryptoExtentions = [];
+            }
+            // Check if the processes are set
+            if (configuration.GetType().GetProperty("Processes") is not null && configuration.GetType().GetProperty("Processes")!.GetValue(configuration) is not null) {
+                // Set the processes from the configuration
+                this.Processes = [.. (List<string>)configuration.GetType().GetProperty("Processes")!.GetValue(configuration)!];
+            } else {
+                // If the processes are not set, initialize them to an empty list
+                this.Processes = [];
+            }
+            if (configuration.GetType().GetProperty("Jobs") is not null && configuration.GetType().GetProperty("Jobs")!.GetValue(configuration) is not null) {
                 // Set the jobs list from the configuration
-                this.Jobs = configuration.GetType().GetProperty("Jobs")?.GetValue(configuration) as List<IBackupJobConfiguration> ?? [];
+                this.Jobs = [.. (List<IBackupJobConfiguration>)configuration.GetType().GetProperty("Jobs")!.GetValue(configuration)!];
             } else {
                 // If the jobs list is not set, initialize it to an empty list
                 this.Jobs = [];
@@ -290,5 +333,24 @@ namespace EasySave.Model {
         }
 
         public event ConfigurationChangedEventHandler? ConfigurationChanged;
+
+        public JsonObject ToJSON() {
+            return new JsonObject {
+                ["Language"] = this.Language,
+                ["StateFile"] = this.StateFile,
+                ["LogFile"] = this.LogFile,
+                ["CryptoFile"] = this.CryptoFile,
+                ["CryptoKey"] = this.CryptoKey,
+                ["Processes"] = new JsonArray([.. this.Processes]),
+                ["CryptoExtentions"] = new JsonArray([.. this.CryptoExtentions]),
+                ["Jobs"] = new JsonArray([.. this.Jobs.Select(j => new JsonObject {
+                    ["Name"] = j.Name,
+                    ["Source"] = j.Source,
+                    ["Destination"] = j.Destination,
+                    ["Type"] = j.Type
+                })])
+            };
+        }
     }
+
 }
