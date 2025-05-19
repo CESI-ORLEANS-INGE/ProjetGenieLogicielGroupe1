@@ -30,6 +30,7 @@ namespace EasySave.Model {
         ObservableCollection<string> Processes { get; set; }
         ObservableCollection<string> CryptoExtentions { get; set; }
         string CryptoFile { get; set; }
+        string CryptoKey { get; set; }
         List<IBackupJobConfiguration> Jobs { get; set; }
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
@@ -98,6 +99,8 @@ namespace EasySave.Model {
                 });
             }
         }
+
+        public string CryptoKey { get; set; }
 
         public string LogFile {
             // check if the log file is set

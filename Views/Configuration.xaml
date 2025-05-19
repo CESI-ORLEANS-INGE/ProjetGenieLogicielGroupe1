@@ -3,45 +3,54 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Height="Auto" Width="Auto">
 
-    <!-- CONTENU PRINCIPAL -->
-    <Grid Grid.Column="1" Margin="10">
+    <Grid Grid.Column="1" Height="Auto">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <!-- Zone ajout -->
-            <RowDefinition Height="*"/>
-            <!-- DataGrid -->
             <RowDefinition Height="Auto"/>
-            <!-- Bouton Run -->
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+        <!-- Language -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="Language:" Width="120" VerticalAlignment="Center"/>
+            <ComboBox Width="100" SelectedItem="{Binding BLanguage}">
+                <ComboBoxItem Content="FR"/>
+                <ComboBoxItem Content="EN"/>
+            </ComboBox>
+        </StackPanel>
 
-        <!-- Bouton Add -->
-        <Button Content="+ Add" Width="100" Height="30" HorizontalAlignment="Right" Margin="0,0,0,10" Grid.Row="0" Background="White"/>
+        <!-- State File Path -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="1">
+            <TextBlock Text="State File:" Width="120" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding StateFile}" Width="300"/>
+            <Button Content="Browse" Width="80" Margin="10,0,0,0" Click="StateFileClick"/>
+        </StackPanel>
 
-        <!-- DataGrid Jobs -->
-        <DataGrid Grid.Row="1" AutoGenerateColumns="False" HeadersVisibility="Column" CanUserAddRows="False" Margin="0,0,0,10" IsSynchronizedWithCurrentItem="False">
-            <DataGrid.Columns>
-                <DataGridCheckBoxColumn Header="" Width="40"/>
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="*"/>
-                <DataGridTextColumn Header="Destination" Width="*"/>
-                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*"/>
+        <!-- Log File Path -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="2">
+            <TextBlock Text="Log File:" Width="120" VerticalAlignment="Center"/>
+            <TextBox Text="{Binding LogFile}" Width="300"/>
+            <Button Content="Browse" Width="80" Margin="10,0,0,0" Click="LogFileClick"/>
+        </StackPanel>
 
-                <!-- Colonne Actions -->
-                <DataGridTemplateColumn Header="Actions" Width="80">
-                    <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                <Button Content="✏" Width="25" Margin="2"/>
-                                <Button Content="🗑" Width="25" Margin="2"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </DataGridTemplateColumn.CellTemplate>
-                </DataGridTemplateColumn>
-            </DataGrid.Columns>
-        </DataGrid>
+        <!-- Extensions to Encrypt -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="3">
+            <TextBlock Text="Extensions to encrypt:" Width="120" VerticalAlignment="Top"/>
+            <TextBox Text="{Binding ExtensionsToEncrypt, UpdateSourceTrigger=PropertyChanged}" Width="300" AcceptsReturn="True" Height="17" TextWrapping="Wrap"/>
+        </StackPanel>
 
-        <!-- Bouton RUN -->
-        <Button Content="Run" Width="100" Height="30"
-            HorizontalAlignment="Right" Grid.Row="2" Background="White"/>
+        <!-- Encryption key -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="4">
+            <TextBlock Text="Encryption key:" Width="120" VerticalAlignment="Top"/>
+            <TextBox Text="{Binding EncryptionKey, UpdateSourceTrigger=PropertyChanged}" Width="300" AcceptsReturn="True" Height="17" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Programs -->
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10" Grid.Row="5">
+            <TextBlock Text="Programs:" Width="120"/>
+            <TextBox Text="{Binding Programs, UpdateSourceTrigger=PropertyChanged}" Width="300" AcceptsReturn="True" Height="17" TextWrapping="Wrap"/>
+        </StackPanel>
     </Grid>
 </UserControl>
