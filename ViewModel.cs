@@ -24,7 +24,7 @@ public interface IViewModel : INotifyPropertyChanged {
     /// <summary>
     /// List of all backup jobs.
     /// </summary>
-    List<IBackupJob> BackupJobs { get; }
+    List<IBackupJob> BackupJobs { get; set; }
 
     /// <summary>
     /// Backup state
@@ -121,7 +121,9 @@ public class ViewModel : IViewModel {
         this.Logger = new Logger.Logger(this.Configuration.LogFile);
     }
 
-    public void RunCommandRun(List<string> indexOrNameList) {
+    public async void RunCommandRun(List<string> indexOrNameList) {
+        const int MAX_CONCURRENT_JOBS = 1;
+
         List<IBackupJobConfiguration> jobsToRun = [];
 
         foreach (string indexOrName in indexOrNameList) {
@@ -154,20 +156,19 @@ public class ViewModel : IViewModel {
         using (this.BackupState = new BackupState(file))
             this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
-        foreach (IBackupJob job in this.BackupJobs) {
-            job.Analyze();
-            this.BackupState.CreateJobState(job);
-        }
-
-        foreach (IBackupJob job in this.BackupJobs) {
-            job.Run();
-        }
+        SemaphoreSlim semaphore = new(MAX_CONCURRENT_JOBS);
+        await Task.WhenAll([.. this.BackupJobs.Select(job => Task.Run(async () => {
+            await semaphore.WaitAsync();
+            try {
+                job.Analyze();
+                this.BackupState.CreateJobState(job);
+                await job.Run();
+            } finally {
+                semaphore.Release();
+            }
+        }))]);
     }
     public void RunCommandAdd(string name, string source, string destination, string type) {
-        if (this.Configuration.Jobs.Count >= 5) {
-            throw new Exception("Maximum number of backup jobs reached (5).");
-        }
-
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
             throw new Exception($"A backup job with the name '{name}' already exists.");
         }
@@ -232,16 +233,21 @@ public class ViewModel : IViewModel {
     public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
         this.JobStateChanged?.Invoke(this, e);
 
-        if (e.JobState?.State == State.IN_PROGRESS) {
-            IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTask];
-            this.Logger.Info(new Log {
-                JobName = e.JobState.BackupJob.Name,
-                Filesize = task.Source?.GetSize() ?? 0,
-                Source = task.Source?.GetPath() ?? string.Empty,
-                Destination = task.Destination?.GetPath() ?? string.Empty,
-                TaskType = task is BackupCopyTask ? "Copy" : "Remove",
-                TransfertDuration = task.GetDuration()
-            });
+        switch (e.JobState?.State) {
+            case State.IN_PROGRESS:
+                IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTaskIndex];
+                this.Logger.Info(new Log {
+                    JobName = e.JobState.BackupJob.Name,
+                    Filesize = task.Source?.GetSize() ?? 0,
+                    Source = task.Source?.GetPath() ?? string.Empty,
+                    Destination = task.Destination?.GetPath() ?? string.Empty,
+                    TaskType = task is BackupCopyTask ? "Copy" : "Remove",
+                    TransfertDuration = task.GetDuration()
+                });
+                break;
+            case State.CANCEL:
+                Console.WriteLine("Job Cancelled");
+                break;
         }
     }
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {

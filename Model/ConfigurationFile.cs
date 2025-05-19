@@ -67,6 +67,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             // get the state file from the json object
             string stateFile = jsonObject["StateFile"]?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
             string logFile = jsonObject["LogFile"]?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
+            string cryptoFile = jsonObject["CryptoFile"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
 
             // get the jobs from the json object
             List<IBackupJobConfiguration> jobs = [];
@@ -96,6 +97,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
                 Language = language,
                 StateFile = stateFile,
                 LogFile = logFile,
+                CryptoFile = cryptoFile,
                 Jobs = jobs
             });
 

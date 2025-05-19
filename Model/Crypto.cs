@@ -6,25 +6,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EasySave.Model
-{
-    public interface ICrypto
-    {
+namespace EasySave.Model {
+    public interface ICrypto {
         public string ExecutablePath { get; set; }
         public double Crypt(string filePath);
     }
-    public class Crypto : ICrypto
-    {
-        public Crypto(Configuration config)
-        {
+    public class Crypto : ICrypto {
+        public Crypto(Configuration config) {
             ExecutablePath = config.CryptoFile;
 
         }
         public string ExecutablePath { get; set; }
         public double Crypt(string filePath) {
             Stopwatch sw = new Stopwatch();
-            try
-            {
+            try {
                 using Process crypto = new Process();
                 crypto.StartInfo.FileName = ExecutablePath;
                 crypto.StartInfo.Arguments = filePath;
@@ -32,9 +27,7 @@ namespace EasySave.Model
                 crypto.WaitForExit();
                 sw.Stop();
                 return sw.ElapsedMilliseconds;
-            }
-            catch 
-            {
+            } catch {
                 return -1;
             }
 

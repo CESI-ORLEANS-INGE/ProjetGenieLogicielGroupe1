@@ -30,34 +30,30 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="Resources\Images\dossier.png" />
-    <None Remove="Resources\Images\logo.png" />
-    <None Remove="Resources\Images\scanner.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Include="Resources\Images\dossier.png">
+    <Content Include="Resources\Icons\arrow-right.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Icons\trash.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Images\logo.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Resources\Images\scanner.png">
+    <Content Include="Resources\Images\logo.svg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Language\EN.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Language\FR.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="Logger\Logger.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Resources\Language\EN.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Resources\Language\FR.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

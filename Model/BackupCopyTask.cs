@@ -19,14 +19,15 @@ public class BackupCopyTask : BackupTask {
 
     protected override void Algorithm() {
         this.Source!.Copy(this.Destination!.GetParent(), true);
-        Configuration config = new Configuration();
-        Crypto crypto = new Crypto(config);
+
+        if (Configuration.Instance is null) { return; }
+
+        Crypto crypto = new(Configuration.Instance);
+
         string extension = Path.GetExtension(Destination.GetPath()).ToLower();
-        if (!config.CryptExt.Select(ext => ext.ToLower()).Contains(extension))
-        {
+        if (Configuration.Instance.CryptoExtentions.Select(ext => ext.StartsWith('.') ? ext.ToLower() : '.' + ext.ToLower()).Contains(extension)) {
             CryptDuration = crypto.Crypt(Destination.GetPath());
         }
     }
 }
 
-  
