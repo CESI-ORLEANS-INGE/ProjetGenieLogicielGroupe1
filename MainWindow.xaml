@@ -31,7 +31,7 @@
                 Grid.Row="0" />
             <Button Content="{Binding ViewModel.Language.Translations[VIEW_MENU_JOB_LIST]}" Height="40" Margin="10,5" Click="JobsList_Click" Grid.Row="1"/>
             <Button Content="{Binding ViewModel.Language.Translations[VIEW_MENU_RUNNING_JOBS]}" Height="40" Margin="10,5" Click="RunningJobs_Click" Grid.Row="2"/>
-            <!-- <Button Content="{Binding ViewModel.Language.Translations[VIEW_MENU_LOGS]}" Height="40" Margin="10,5" Click="Logs_Click" Grid.Row="4"/> -->
+            <Button Content="{Binding ViewModel.Language.Translations[VIEW_MENU_LOGS]}" Height="40" Margin="10,5" Click="Logs_Click" Grid.Row="4"/>
             <Button Content="{Binding ViewModel.Language.Translations[VIEW_MENU_CONFIGURATION]}" Height="40" Margin="10,5,10,10" Click="Configuration_Click" Grid.Row="5"/>
         </Grid>
 

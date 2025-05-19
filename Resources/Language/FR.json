@@ -44,5 +44,19 @@
   "VIEW_MENU_JOB_LIST": "Liste des travaux",
   "VIEW_MENU_RUNNING_JOBS": "Travaux en cours",
   "VIEW_MENU_LOGS": "Journaux",
-  "VIEW_MENU_CONFIGURATION": "Configuration"
+  "VIEW_MENU_CONFIGURATION": "Configuration",
+  "CONFIG_LANGUAGE": "Langue :",
+  "CONFIG_STATE_FILE": "Fichier d'état :",
+  "CONFIG_LOG_FILE": "Fichier de journal :",
+  "CONFIG_CRYPTO_FILE": "Fichier Crypto :",
+  "CONFIG_ENCRYPTION_KEY": "Clé de chiffrement :",
+  "CONFIG_EXTENSIONS_TO_ENCRYPT": "Extensions à chiffrer :",
+  "CONFIG_PROCESSES": "Processus :",
+  "CONFIG_BROWSE": "Parcourir",
+  "CONFIG_ADD": "Ajouter",
+  "CONFIG_REMOVE": "Supprimer",
+  "CONFIG_CLEAR_ALL": "Tout effacer",
+  "CONFIG_SELECT_RUNNING_PROCESS": "Sélectionner un processus en cours",
+  "CONFIG_GENERATE": "Générer",
+  "CONFIG_SAVE": "Enregistrer la configuration"
 }

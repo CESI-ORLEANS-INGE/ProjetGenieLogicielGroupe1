@@ -1,0 +1,59 @@
+﻿<Window x:Class="EasySave.Views.LogDetailsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Log Details"
+        MinHeight="300" MinWidth="350"
+        SizeToContent="WidthAndHeight"
+>
+    <StackPanel Orientation="Vertical" Margin="10">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Date Time:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Datetime}" FontWeight="Bold" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Name:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Name}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Description:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Description}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Type:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Type}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Type Description:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding TypeDescription}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="File Size:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Filesize}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Transfer Duration:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding TransfertDuration}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Level:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Level}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
+            <TextBlock Text="Message:" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding Message}" Margin="10,0,0,0" TextWrapping="Wrap" />
+        </StackPanel>
+
+        <Button Content="OK"
+                HorizontalAlignment="Right"
+                Width="70"
+                Margin="0,10,0,0"
+                Click="Ok_Click"/>
+
+    </StackPanel>
+</Window>

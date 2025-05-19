@@ -44,5 +44,19 @@
   "VIEW_MENU_JOB_LIST": "Job List",
   "VIEW_MENU_RUNNING_JOBS": "Running Jobs",
   "VIEW_MENU_LOGS": "Logs",
-  "VIEW_MENU_CONFIGURATION": "Configuration"
+  "VIEW_MENU_CONFIGURATION": "Configuration",
+  "CONFIG_LANGUAGE": "Language:",
+  "CONFIG_STATE_FILE": "State file:",
+  "CONFIG_LOG_FILE": "Log file:",
+  "CONFIG_CRYPTO_FILE": "Crypto file:",
+  "CONFIG_ENCRYPTION_KEY": "Encryption key:",
+  "CONFIG_EXTENSIONS_TO_ENCRYPT": "Extensions to encrypt:",
+  "CONFIG_PROCESSES": "Processes:",
+  "CONFIG_BROWSE": "Browse",
+  "CONFIG_ADD": "Add",
+  "CONFIG_REMOVE": "Remove",
+  "CONFIG_CLEAR_ALL": "Clear all",
+  "CONFIG_SELECT_RUNNING_PROCESS": "Select a running process",
+  "CONFIG_GENERATE": "Generate",
+  "CONFIG_SAVE": "Save configuration"
 }

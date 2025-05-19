@@ -28,7 +28,8 @@ namespace EasySave.Logger {
                 new XElement("TaskType", log.TaskType),
                 new XElement("Filesize", log.Filesize),
                 new XElement("TransfertDuration", log.TransfertDuration),
-                new XElement("Level", log.Level.ToString())
+                new XElement("Level", log.Level.ToString()),
+                new XElement("Message", log.Message)
             );
 
 
@@ -69,6 +70,7 @@ namespace EasySave.Logger {
                             Filesize = double.TryParse(xmlNode.Element("Filesize")?.Value, out double size) ? size : 0,
                             TransfertDuration = double.TryParse(xmlNode.Element("TransfertDuration")?.Value, out double dur) ? dur : 0,
                             Level = Enum.TryParse<LogLevel>(xmlNode.Element("Level")?.Value, out var level) ? level : LogLevel.Information,
+                            Message = xmlNode.Element("Message")?.Value ?? ""
                         };
                         logs.Add(log);
                     }
@@ -94,6 +96,7 @@ namespace EasySave.Logger {
                 ["Filesize"] = log.Filesize,
                 ["TransfertDuration"] = log.TransfertDuration,
                 ["Level"] = log.Level.ToString(),
+                ["Message"] = log.Message
             };
 
             // Convert the JSON object to a string
@@ -134,6 +137,7 @@ namespace EasySave.Logger {
                             Filesize = double.TryParse(jsonObject["Filesize"]?.ToString(), out double size) ? size : 0,
                             TransfertDuration = double.TryParse(jsonObject["TransfertDuration"]?.ToString(), out double dur) ? dur : 0,
                             Level = Enum.TryParse<LogLevel>(jsonObject["Level"]?.ToString(), out var level) ? level : LogLevel.Information,
+                            Message = jsonObject["Message"]?.ToString() ?? "",
                         };
                         logs.Add(log);
                     }
