@@ -1,58 +1,67 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-    <PublishSingleFile>true</PublishSingleFile>
-  </PropertyGroup>
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<TargetFramework>net8.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWPF>true</UseWPF>
+		<PublishSingleFile>true</PublishSingleFile>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <Compile Remove="CryptoSoft\**" />
-    <Compile Remove="Doc\**" />
-    <Compile Remove="EasySave.Tests\**" />
-    <Compile Remove="Logger\**" />
-    <EmbeddedResource Remove="CryptoSoft\**" />
-    <EmbeddedResource Remove="Doc\**" />
-    <EmbeddedResource Remove="EasySave.Tests\**" />
-    <EmbeddedResource Remove="Logger\**" />
-    <None Remove="CryptoSoft\**" />
-    <None Remove="Doc\**" />
-    <None Remove="EasySave.Tests\**" />
-    <None Remove="Logger\**" />
-    <Page Remove="CryptoSoft\**" />
-    <Page Remove="Doc\**" />
-    <Page Remove="EasySave.Tests\**" />
-    <Page Remove="Logger\**" />
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Remove="CryptoSoft\**" />
+		<Compile Remove="Doc\**" />
+		<Compile Remove="EasySave.Tests\**" />
+		<Compile Remove="Logger\**" />
+		<EmbeddedResource Remove="CryptoSoft\**" />
+		<EmbeddedResource Remove="Doc\**" />
+		<EmbeddedResource Remove="EasySave.Tests\**" />
+		<EmbeddedResource Remove="Logger\**" />
+		<None Remove="CryptoSoft\**" />
+		<None Remove="Doc\**" />
+		<None Remove="EasySave.Tests\**" />
+		<None Remove="Logger\**" />
+		<Page Remove="CryptoSoft\**" />
+		<Page Remove="Doc\**" />
+		<Page Remove="EasySave.Tests\**" />
+		<Page Remove="Logger\**" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove="logo.png" />
-    <None Remove="Resources\Images\logo.png" />
-    <None Remove="Resources\Language\FR.json" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="Resources\Images\dossier.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Icons\arrow-right.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Icons\trash.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Images\logo.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Images\scanner.png">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Images\logo.svg">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Language\EN.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Resources\Language\FR.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
 
-  <ItemGroup>
-    <Content Include="Resources\Images\logo.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Resources\Language\FR.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="Logger\Logger.csproj" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="Logger\Logger.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="logo.png" />
-  </ItemGroup>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="call .\Scripts\prebuild.bat $(Configuration)" />
-  </Target>
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Exec Command="call .\Scripts\prebuild.bat $(Configuration)" />
+	</Target>
 
 </Project>

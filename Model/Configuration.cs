@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace EasySave.Model {
     /// <summary>
@@ -20,6 +22,7 @@ namespace EasySave.Model {
         public const string DEFAULT_LANGUAGE = "FR";
         public const string DEFAULT_STATE_FILE = "state.json";
         public const string DEFAULT_LOG_FILE = "logs.json";
+        public const string DEFAULT_CRYPTO_FILE = "CryptoSoft/CryptoSoft.exe";
 
         string Language { get; set; }
         string StateFile { get; set;  }
@@ -32,6 +35,7 @@ namespace EasySave.Model {
 
         public void AddJob(IBackupJobConfiguration jobConfiguration);
         public void RemoveJob(IBackupJobConfiguration jobConfiguration);
+        public JsonObject ToJSON();
 
         event ConfigurationChangedEventHandler ConfigurationChanged;
     }
@@ -56,7 +60,6 @@ namespace EasySave.Model {
         private static string? _CryptoFile;
         // List of jobs
         private static List<IBackupJobConfiguration>? _Jobs;
-        
         public List<string> CryptExt { get; set; }
 
         /// <summary>
@@ -226,9 +229,29 @@ namespace EasySave.Model {
                 // Set the state file from the configuration
                 this.StateFile = configuration.GetType().GetProperty("StateFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_STATE_FILE;
             }
-            // Check if the jobs list is set
+            // Check if the log file is set
             if (configuration.GetType().GetProperty("LogFile") is not null) {
                 this.LogFile = configuration.GetType().GetProperty("LogFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
+            }
+            // Check if the crypto file is set
+            if (configuration.GetType().GetProperty("CryptoFile") is not null) {
+                this.CryptoFile = configuration.GetType().GetProperty("CryptoFile")?.GetValue(configuration)?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
+            }
+            // Check if the crypto extentions are set
+            if (configuration.GetType().GetProperty("CryptoExtentions") is not null) {
+                // Set the crypto extentions from the configuration
+                this.CryptoExtentions = configuration.GetType().GetProperty("CryptoExtentions")?.GetValue(configuration) as ObservableCollection<string> ?? new ObservableCollection<string>();
+            } else {
+                // If the crypto extentions are not set, initialize them to an empty list
+                this.CryptoExtentions = new ObservableCollection<string>();
+            }
+            // Check if the processes are set
+            if (configuration.GetType().GetProperty("Processes") is not null) {
+                // Set the processes from the configuration
+                this.Processes = configuration.GetType().GetProperty("Processes")?.GetValue(configuration) as ObservableCollection<string> ?? new ObservableCollection<string>();
+            } else {
+                // If the processes are not set, initialize them to an empty list
+                this.Processes = new ObservableCollection<string>();
             }
             if (configuration.GetType().GetProperty("Jobs") is not null) {
                 // Set the jobs list from the configuration
@@ -292,5 +315,23 @@ namespace EasySave.Model {
         }
 
         public event ConfigurationChangedEventHandler? ConfigurationChanged;
+
+        public JsonObject ToJSON() {
+            return new JsonObject {
+                ["Language"] = this.Language,
+                ["StateFile"] = this.StateFile,
+                ["LogFile"] = this.LogFile,
+                ["CryptoFile"] = this.CryptoFile,
+                ["Processes"] = new JsonArray([.. this.Processes]),
+                ["CryptoExtentions"] = new JsonArray([.. this.CryptoExtentions]),
+                ["Jobs"] = new JsonArray([.. this.Jobs.Select(j => new JsonObject {
+                    ["Name"] = j.Name,
+                    ["Source"] = j.Source,
+                    ["Destination"] = j.Destination,
+                    ["Type"] = j.Type
+                })])
+            };
+        }
     }
+
 }

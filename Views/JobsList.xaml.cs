@@ -9,5 +9,10 @@ namespace EasySave.Views
         {
             InitializeComponent();
         }
+        private void AddJob(object sender, System.Windows.RoutedEventArgs e)
+        {
+            JobEdit jobEdit = new JobEdit();
+            jobEdit.Show();
+        }
     }
 }
