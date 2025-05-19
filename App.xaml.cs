@@ -10,7 +10,8 @@ namespace EasySave;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application {
+public partial class App : System.Windows.Application
+{
     private readonly IViewModel _ViewModel;
 
     public App() {
@@ -154,7 +155,7 @@ public partial class App : Application {
             this.Shutdown();
         } else {
             // DEV
-            App.AllocConsole();
+            //App.AllocConsole();
             MainWindow mainWindow = new(this._ViewModel);
             mainWindow.Show();
         }

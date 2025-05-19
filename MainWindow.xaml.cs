@@ -7,19 +7,21 @@ namespace EasySave;
 /// Interaction logic for MainWindow.xaml
 /// </summary>
 public partial class MainWindow : Window {
-    private readonly IViewModel _ViewModel;
+    public IViewModel ViewModel { get; private set; }
 
     public MainWindow(IViewModel viewModel) {
-        this._ViewModel = viewModel;
+        this.ViewModel = viewModel;
 
         InitializeComponent();
+
+        this.MainGrid.DataContext = this;
     }
 
     private void JobsList_Click(object sender, RoutedEventArgs e) {
         MainContent.Content = new JobsList();
     }
     private void RunningJobs_Click(object sender, RoutedEventArgs e) {
-        MainContent.Content = new RunningJobs(this._ViewModel);
+        MainContent.Content = new RunningJobs(this.ViewModel);
     }
     private void Logs_Click(object sender, RoutedEventArgs e) {
         MainContent.Content = new Logs();

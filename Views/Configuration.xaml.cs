@@ -6,7 +6,7 @@ using Microsoft.Win32;
 
 namespace EasySave.Views
 {
-    partial class Configuration : UserControl
+    partial class Configuration : System.Windows.Controls.UserControl
     {
         private readonly IViewModel _ViewModel;
         public Configuration(IViewModel viewModel)

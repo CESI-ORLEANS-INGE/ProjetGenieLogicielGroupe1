@@ -1,35 +1,61 @@
 ﻿using System;
 using Microsoft.Win32;
 using System.Windows;
+using System.Windows.Forms; // Ajout de cette directive
 
 namespace EasySave.Views
 {
     public partial class JobEdit : Window
     {
-        // Constructor for the JobEdit window
         public JobEdit()
         {
             InitializeComponent();
         }
-
         // Event handler for the Save button click
-        private void SaveJob(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
 
+        private void Save_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(PathSource.Text) || string.IsNullOrWhiteSpace(PathDestination.Text))
+                {
+                    System.Windows.MessageBox.Show("Veuillez remplir tous les champs.");
+                    return;
+                }
+                // Save the job configuration (pseudo code)
+                // SaveJobConfiguration(PathSource.Text, PathDestination.Text);
+                System.Windows.MessageBox.Show("Sauvegarde réussie !");
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Erreur lors de la sauvegarde : " + ex.Message);
+            }
+        }
         // Event handler for the Cancel button click
         private void Cancel_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
         }
-
-        // Event handler for the Delete button click
         private void DeleteJob(object sender, RoutedEventArgs e)
         {
-            // Open confirmation dialog
-            ConfirmDeleteWindow confirmDeleteWindow = new ConfirmDeleteWindow();
-            confirmDeleteWindow.ShowDialog();
+            try
+            {
+                // Show confirmation dialog
+                ConfirmDeleteWindow confirmDeleteWindow = new ConfirmDeleteWindow();
+                if (confirmDeleteWindow.ShowDialog() == true && confirmDeleteWindow.IsConfirmed)
+                {
+                    // Delete the job (pseudo code)
+                    // DeleteJob();
+                    System.Windows.MessageBox.Show("Suppression réussie !");
+                    this.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Erreur lors de la suppression : " + ex.Message);
+            }
         }
 
         // Event handler for the Browse Source button click
@@ -37,20 +63,21 @@ namespace EasySave.Views
         {
             try
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog
+                using (var folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog
                 {
-                    Title = "Sélectionnez un fichier source",
-                    Filter = "Tous les fichiers (*.*)|*.*"
-                };
-
-                if (openFileDialog.ShowDialog() == true)
+                    Description = "Sélectionnez un dossier source",
+                    ShowNewFolderButton = true
+                })
                 {
-                    PathSource.Text = openFileDialog.FileName;
+                    if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        PathSource.Text = folderBrowserDialog.SelectedPath;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erreur lors de la sélection du fichier source : " + ex.Message);
+                System.Windows.MessageBox.Show("Erreur lors de la sélection du dossier source : " + ex.Message);
             }
         }
 
@@ -59,20 +86,21 @@ namespace EasySave.Views
         {
             try
             {
-                OpenFileDialog openFileDialog = new OpenFileDialog
+                using (var folderBrowserDialog = new System.Windows.Forms.FolderBrowserDialog
                 {
-                    Title = "Sélectionnez un fichier de destination",
-                    Filter = "Tous les fichiers (*.*)|*.*"
-                };
-
-                if (openFileDialog.ShowDialog() == true)
+                    Description = "Sélectionnez un dossier de destination",
+                    ShowNewFolderButton = true
+                })
                 {
-                    PathDestination.Text = openFileDialog.FileName;
+                    if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                    {
+                        PathDestination.Text = folderBrowserDialog.SelectedPath;
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Erreur lors de la sélection du fichier de destination : " + ex.Message);
+                System.Windows.MessageBox.Show("Erreur lors de la sélection du dossier de destination : " + ex.Message);
             }
         }
     }
