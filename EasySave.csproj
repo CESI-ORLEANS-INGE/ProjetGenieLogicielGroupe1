@@ -29,11 +29,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Resources\Images\dossier.png" />
     <None Remove="Resources\Images\logo.png" />
+    <None Remove="Resources\Images\scanner.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Resources\Images\dossier.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\Images\logo.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\Images\scanner.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
