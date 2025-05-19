@@ -27,7 +27,7 @@ public partial class MainWindow : Window {
         MainContent.Content = new Logs();
     }
     private void Configuration_Click(object sender, RoutedEventArgs e) {
-        MainContent.Content = new Configuration();
+        MainContent.Content = new Configuration(this._ViewModel);
     }
 
 }
