@@ -173,7 +173,7 @@ namespace EasySave.Model {
 
             this.SourceFilePath = task.Source?.GetPath() ?? string.Empty;
             this.DestinationFilePath = task.Destination?.GetPath() ?? string.Empty;
-            this.Progression = (int)((this.TotalFilesToCopy - this.FilesLeft) / this.TotalFilesToCopy * 100);
+            this.Progression = this.BackupJob.Tasks.Count > 0 ? (int)Math.Round((double)this.BackupJob.CurrentTaskIndex / this.BackupJob.Tasks.Count * 100) : 0;
 
             this.RaiseStateChanged();
         }

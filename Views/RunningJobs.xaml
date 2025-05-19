@@ -5,12 +5,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:easysave="clr-namespace:EasySave"
     xmlns:converters="clr-namespace:EasySave.Converters"
+    xmlns:views="clr-namespace:EasySave.Views"
     mc:Ignorable="av" 
     x:Class="EasySave.Views.RunningJobs"
     Height="Auto" 
     Width="Auto" 
     av:DesignHeight="496.81" 
     av:DesignWidth="684"
+    av:DataContext="{av:DesignInstance Type=views:RunningJobs}"
 >
     <Control.Resources>
         <converters:DateTimeToStringConverter x:Key="DtToStrConverter"/>
@@ -52,7 +54,7 @@
                                         </Grid.ColumnDefinitions>
 
                                         <Label Content="{Binding BackupJob.Source}" Grid.Column="0"/>
-                                        <Image Source="pack://application:,,,/Resources/Icons/arrow-right.png" Grid.Column="1" Width="24" Height="24"/>
+                                        <Image Source="pack://application:,,,/Resources/Images/arrow-right.png" Grid.Column="1" Width="24" Height="24"/>
                                         <Label Content="{Binding BackupJob.Destination}" Grid.Column="2"/>
                                     </Grid>
 
@@ -69,10 +71,10 @@
                                     >
                                             <Image.Style>
                                                 <Style TargetType="Image">
-                                                    <Setter Property="Source" Value="pack://application:,,,/Resources/Icons/arrow-right.png"/>
+                                                    <Setter Property="Source" Value="pack://application:,,,/Resources/Images/arrow-right.png"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding BackupJob.CurrentTask.IsRemoveTask}" Value="True">
-                                                            <Setter Property="Source" Value="pack://application:,,,/Resources/Icons/trash.png"/>
+                                                            <Setter Property="Source" Value="pack://application:,,,/Resources/Images/trash.png"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
@@ -87,7 +89,7 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Label Content="Start :" Grid.Column="0"/>
+                                        <Label Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_STARTED_AT], ElementName=MainGrid}" Grid.Column="0"/>
                                         <Label Content="{Binding BackupJob.StartedAt, Converter={StaticResource DtToStrConverter}}" Grid.Column="1"/>
                                     </Grid>
                                 </Grid>
@@ -95,13 +97,16 @@
                                 <Grid Grid.Row="1">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <Button Content="Pause"  Width="100" Height="30" Grid.Column="1" Visibility="Hidden"/>
-                                    <Button Content="Cancel"  Width="100" Height="30" Grid.Column="3" Click="CancelButton_Click" DataContext="{Binding Path=.}"/>
+                                    <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Grid.Row="0"/>
+
+                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_PAUSE], ElementName=MainGrid}"  Width="100" Height="30" Grid.Column="2" Visibility="Hidden"/>
+                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_CANCEL], ElementName=MainGrid}"  Width="100" Height="30" Grid.Column="4" Click="CancelButton_Click" DataContext="{Binding Path=.}"/>
                                 </Grid>
                             </Grid>
                         </GroupBox>
@@ -116,17 +121,18 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Orientation="Vertical" Grid.Column="0">
+            <StackPanel Orientation="Vertical" Grid.Column="0" Margin="0,0,10,0">
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="Started At : "/>
+                    <Label Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_STARTED_AT]}"/>
                     <Label Content="{Binding StartedAt, Converter={StaticResource DtToStrConverter}}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Label Content="Copy : "/>
+                    <Label Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_FILE_COPY]}"/>
                     <Label Content="{Binding TotalFilesLeft}"/>
                     <Label Content="/"/>
                     <Label Content="{Binding TotalFilesToCopy}"/>
                 </StackPanel>
+                <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray"/>
             </StackPanel>
 
             <Grid Grid.Column="1">
@@ -136,9 +142,10 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Button x:Name="PauseAllButton" Content="Pause All"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
+                <Button x:Name="PauseAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_PAUSE_ALL]}"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
+                <Button x:Name="ResumeAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_RESUME_ALL]}"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
                 <Button x:Name="RunAllButton" Content="Run All"  Width="100" Height="30" Grid.Row="0" Click="RunAllButton_Click"/>
-                <Button x:Name="CancelAllButton" Content="Cancel All"  Width="100" Height="30" Grid.Row="2" Click="CancelAllButton_Click"/>
+                <Button x:Name="CancelAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_CANCEL_ALL]}"  Width="100" Height="30" Grid.Row="2" Click="CancelAllButton_Click"/>
             </Grid>
         </Grid>
     </Grid>
