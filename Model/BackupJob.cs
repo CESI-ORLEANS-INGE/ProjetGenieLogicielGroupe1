@@ -47,7 +47,12 @@ public interface IBackupJob {
     /// Current task index being executed.
     /// This is used to track the progress of the backup job.
     /// </summary>
-    public int CurrentTask { get; }
+    public int CurrentTaskIndex { get; }
+
+    public IBackupTask CurrentTask { get; }
+
+    public DateTime StartedAt { get; }
+
 
     /// <summary>
     /// Analyzes the source and destination directories to determine the files that need to be backed up.
@@ -58,7 +63,7 @@ public interface IBackupJob {
     /// Runs the backup job.
     /// This method will execute the backup tasks in the order they are defined in the Tasks list.
     /// </summary>
-    public void Run();
+    public Task Run();
     public void Stop();
 
     ///// <summary>
@@ -92,7 +97,22 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
     private bool _isStopped = false;
 
     public List<IBackupTask> Tasks { get; } = [];
-    public int CurrentTask { get; set; } = 0;
+    public int CurrentTaskIndex { get; set; } = 0;
+    public IBackupTask CurrentTask {
+        get {
+            if (CurrentTaskIndex < 0 || CurrentTaskIndex >= Tasks.Count) {
+                return new BackupVoidTask();
+            }
+            return Tasks[CurrentTaskIndex];
+        }
+    }
+
+    private Task? Task; 
+
+    public DateTime StartedAt {
+        get;
+        private set;
+    }
 
     public event BackupJobEventHandler? BackupJobStarted;
     public event BackupJobProgressEventHandler? BackupJobProgress;
@@ -104,34 +124,42 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
 
     public abstract void Analyze();
 
-    public void Run() {
+    public Task Run() {
         this.BackupJobStarted?.Invoke(this, new BackupJobEventArgs(this.Name));
         if (Tasks.Count == 0) {
             this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
-            return;
+            return Task.CompletedTask;
         }
 
         this._isStopped = false;
+        this.StartedAt = DateTime.Now;
 
-        for (this.CurrentTask = 0; this.CurrentTask < Tasks.Count; this.CurrentTask++) {
-            if (this._isStopped) {
-                this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
-                return;
+        return this.Task = Task.Run(async () => {
+            for (this.CurrentTaskIndex = 0; this.CurrentTaskIndex < Tasks.Count - 1; this.CurrentTaskIndex++) {
+                if (this._isStopped) {
+                    this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
+                    return;
+                }
+
+                IBackupTask task = Tasks[this.CurrentTaskIndex];
+                task.StartTime = DateTime.Now;
+
+                // DEV
+                Console.WriteLine("Run Task" + this.CurrentTaskIndex + " of " + this.Name + " ~ " + string.Join(", ", ((List<string>)[task.Source?.GetName(), task.Destination?.GetName()])));
+                await Task.Delay(500); // Simulate some delay for the task to run
+
+                try {
+                    task.Run();
+                    task.EndTime = DateTime.Now;
+                    this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTaskIndex));
+                } catch (Exception ex) {
+                    this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
+                    return;
+                }
             }
 
-            IBackupTask task = Tasks[this.CurrentTask];
-            task.StartTime = DateTime.Now;
-            try {
-                task.Run();
-                task.EndTime = DateTime.Now;
-                this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTask));
-            } catch (Exception ex) {
-                this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
-                return;
-            }
-        }
-
-        this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
+            this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
+        });
     }
 
     public void Stop() {
