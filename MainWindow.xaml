@@ -9,13 +9,27 @@
         </Grid.ColumnDefinitions>
 
         <!-- MENU À GAUCHE -->
-        <StackPanel Grid.Column="0" VerticalAlignment="Stretch" Background="#FFB5B5B5">
-            <Image x:Name="Logo" Source="\Resources/Images/logo.png" Width="150" Height="50" IsEnabled="true" Margin="0,5" />
-            <Button Content="Job list" Height="40" Margin="10,5" Background="Gainsboro" Click="JobsList_Click"/>
-            <Button Content="Running jobs" Height="40" Margin="10,5" Background="Gainsboro" Click="RunningJobs_Click"/>
-            <Button Content="Logs" Height="40" Margin="10,5" Background="Gainsboro" Click="Logs_Click"/>
-            <Button Content="Configuration" Height="40" Margin="10,5" Background="Gainsboro" Click="Configuration_Click"/>
-        </StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+
+            </Grid.RowDefinitions>
+
+            <Image 
+                x:Name="Logo" Source="pack://application:,,,/Resources/Images/logo.png" 
+                Width="150" Height="50" IsEnabled="true" Margin="0,20,0,10" 
+                Grid.Row="0"
+                />
+            <Button Content="Job list" Height="40" Margin="10,5" Background="Gainsboro" Click="JobsList_Click" Grid.Row="1"/>
+            <Button Content="Running jobs" Height="40" Margin="10,5" Background="Gainsboro" Click="RunningJobs_Click" Grid.Row="2"/>
+            <Button Content="Logs" Height="40" Margin="10,5" Background="Gainsboro" Click="Logs_Click" Grid.Row="4"/>
+            <Button Content="Configuration" Height="40" Margin="10,5,10,10" Background="Gainsboro" Click="Configuration_Click" Grid.Row="5"/>
+        </Grid>
 
         <!-- Zone de contenu -->
         <Grid Grid.Column="1" Margin="10">
