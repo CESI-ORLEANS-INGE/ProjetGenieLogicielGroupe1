@@ -43,6 +43,7 @@ public partial class MainWindow : Window
     {
         // Set the content of the MainContent to the Logs view
         MainContent.Content = new Logs();
+        var Liste= new LogListWindow();
     }
     // Event handler for the "Configuration" menu item click
     private void Configuration_Click(object sender, RoutedEventArgs e)
