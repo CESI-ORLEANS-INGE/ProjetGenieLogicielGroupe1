@@ -74,6 +74,9 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             List<string> cryptoExtentions = jsonObject["CryptoExtensions"] is JsonArray array
                 ? [.. array.Select(x=>x?.ToString() ?? string.Empty)]
                 : [];
+            List<string> processes = jsonObject["Processes"] is JsonArray array1
+                ? [.. array1.Select(x => x?.ToString() ?? string.Empty)]
+                : [];
 
             // get the jobs from the json object
             List <IBackupJobConfiguration> jobs = [];
@@ -106,6 +109,7 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
                 CryptoFile = cryptoFile,
                 CryptoKey = cryptoKey,
                 CryptoExtentions = cryptoExtentions,
+                Processes = processes,
                 Jobs = jobs
             });
 

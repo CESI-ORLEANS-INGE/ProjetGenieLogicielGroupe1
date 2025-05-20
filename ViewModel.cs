@@ -91,6 +91,16 @@ public interface IViewModel : INotifyPropertyChanged {
     event LanguageChangedEventHandler? LanguageChanged;
     event JobStateChangedEventHandler? JobStateChanged;
     event ConfigurationChangedEventHandler? ConfigurationChanged;
+
+    // Party configuration 🎉
+
+    string BLanguage { get; set; }
+    string StateFile { get; set; }
+    string LogFile { get; set; }
+    string CryptoFile { get; set; }
+    string ExtensionsToEncrypt { get; set; }
+    string EncryptionKey { get; set; }
+    string Processes { get; set; }
 }
 
 public class ViewModel : IViewModel {
@@ -116,6 +126,10 @@ public class ViewModel : IViewModel {
         this.ProcessesDetector.OneOrMoreProcessRunning += (sender, e) => {
             foreach (IBackupJob job in this.BackupJobs) {
                 job.Stop();
+                Logger?.Info(new Log {
+                    JobName = job.Name,
+                    Message = "One or more processes are running, stopping the backup job.",
+                });
             }
         };
 
@@ -228,6 +242,7 @@ public class ViewModel : IViewModel {
     }
     public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
         this.LanguageChanged?.Invoke(this, e);
+        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
     }
     public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
         this.JobStateChanged?.Invoke(this, e);
@@ -254,8 +269,9 @@ public class ViewModel : IViewModel {
     public string BLanguage {
         get => Configuration.Language;
         set {
-            Configuration.Language = value;
+            Language.SetLanguage(value);
             OnPropertyChanged(nameof(BLanguage));
+            OnPropertyChanged(nameof(Language));
         }
     }
 
@@ -300,7 +316,6 @@ public class ViewModel : IViewModel {
         set {
             Configuration.CryptoKey = value;
             OnPropertyChanged(nameof(EncryptionKey));
-
         }
     }
 

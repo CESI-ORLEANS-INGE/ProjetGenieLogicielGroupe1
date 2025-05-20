@@ -290,7 +290,22 @@ namespace EasySave.Model {
                 };
             }
 
+            this.Processes.CollectionChanged += Processes_CollectionChanged;
+            this.CryptoExtentions.CollectionChanged += CryptoExtentions_CollectionChanged;
+
             Configuration.Instance = this;
+        }
+
+        private void CryptoExtentions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+            this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                PropertyName = nameof(CryptoExtentions)
+            });
+        }
+
+        private void Processes_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+            this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
+                PropertyName = nameof(Processes)
+            });
         }
 
         /// <summary>

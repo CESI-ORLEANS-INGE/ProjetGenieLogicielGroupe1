@@ -48,13 +48,26 @@ namespace EasySave.Model {
                     Task.Delay(1000).Wait();
                 }
             });
+
+            if (Configuration.Instance is not null) {
+                Configuration.Instance.ConfigurationChanged += OnConfigurationChanged;
+            }
+        }
+
+        private void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
+            if (Configuration.Instance is null) return;
+            if (e.PropertyName != nameof(Configuration.Instance.Processes)) return;
+
+            this.Processes = Configuration.Instance.Processes.ToDictionary(process => process, process => this.Processes.TryGetValue(process, out bool value) && value);
         }
 
         public bool CheckProcesses() {
             List<Process> runningProcesses = [.. Process.GetProcesses()];
 
             foreach (string process in this.Processes.Keys) {
-                bool isRunning = runningProcesses.Any(p => p.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase));
+                bool isRunning = runningProcesses.Any(p => 
+                    p.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase)
+                );
                 if (isRunning && !this.Processes[process]) {
                     this.Processes[process] = true;
                     ProcessStarded?.Invoke(this, new ProcessEventArgs(process));

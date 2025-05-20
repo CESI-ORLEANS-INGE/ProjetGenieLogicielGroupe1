@@ -42,6 +42,8 @@ namespace EasySave.Logger {
                 _ => throw new NotSupportedException($"Extension '{extension}' non supportée pour le fichier de log."),
             };
 
+            if (entry.Datetime == new DateTime()) entry.Datetime = DateTime.Now;
+
             logFile.Save(entry, _filePath);
         }
 
