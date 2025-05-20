@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace EasySave.Views {
     /// <summary>
@@ -23,42 +24,46 @@ namespace EasySave.Views {
         public class ProcessInfo {
             public string Name { get; set; }
             public int Id { get; set; }
-            public string MemoryMB { get; set; }
             public string Path { get; set; }
         }
 
-        public string? SelectedProcessName { get; private set; }
+        public IViewModel ViewModel { get; private set; }
+        public List<string> SelectedProcesses { get; private set; } = [];
 
-        private List<ProcessInfo> _allProcesses = new();
+        private ObservableCollection<ProcessInfo> _allProcesses = new ObservableCollection<ProcessInfo>();
 
-        public SelectProcess() {
+        public SelectProcess(IViewModel viewModel) {
+            this.ViewModel = viewModel;
             InitializeComponent();
             LoadProcesses();
+            ProcessListView.ItemsSource = _allProcesses;
             ProcessListView.SelectionChanged += ProcessListView_SelectionChanged;
             OkButton.IsEnabled = false;
+            this.MainStackPanel.DataContext = this;
         }
 
         private void LoadProcesses() {
-            var processes = Process.GetProcesses()
-                .OrderBy(p => p.ProcessName)
-                .Select(p => {
-                    string path = "";
-                    try { path = p.MainModule?.FileName ?? ""; } catch { }
-                    string mem = "";
-                    try { mem = (p.WorkingSet64 / (1024 * 1024)).ToString(); } catch { }
-                    return new ProcessInfo {
-                        Name = p.ProcessName,
-                        Id = p.Id,
-                        MemoryMB = mem,
-                        Path = path
-                    };
-                })
-                .GroupBy(p => p.Name)
-                .Select(g => g.First()) // Only show one entry per process name
-                .ToList();
+            _allProcesses.Clear();
+            foreach (var proc in Process.GetProcesses().OrderBy(p => p.ProcessName)) {
+                try {
+                    _allProcesses.Add(new ProcessInfo {
+                        Name = proc.ProcessName,
+                        Id = proc.Id,
+                        Path = proc.MainModule?.FileName ?? ""
+                    });
+                } catch {
+                    // Some processes may not allow access to MainModule
+                }
+            }
+        }
 
-            _allProcesses = processes;
-            ProcessListView.ItemsSource = _allProcesses;
+        private void ApplySearchFilter() {
+            SearchBox_TextChanged(null, null);
+        }
+
+        private void RefreshButton_Click(object sender, RoutedEventArgs e) {
+            LoadProcesses();
+            ApplySearchFilter();
         }
 
         private void SearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e) {
@@ -76,15 +81,15 @@ namespace EasySave.Views {
         }
 
         private void ProcessListView_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e) {
-            OkButton.IsEnabled = ProcessListView.SelectedItem != null;
+            OkButton.IsEnabled = ProcessListView.SelectedItems.Count > 0;
         }
 
         private void OkButton_Click(object sender, RoutedEventArgs e) {
-            if (ProcessListView.SelectedItem is ProcessInfo info) {
-                SelectedProcessName = info.Name;
-                DialogResult = true;
-                Close();
-            }
+            this.SelectedProcesses = [.. ProcessListView.SelectedItems
+                .OfType<ProcessInfo>()
+                .Select(p => p.Name)];
+            this.DialogResult = true;
+            this.Close();
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e) {

@@ -58,5 +58,22 @@
   "CONFIG_CLEAR_ALL": "Clear all",
   "CONFIG_SELECT_RUNNING_PROCESS": "Select a running process",
   "CONFIG_GENERATE": "Generate",
-  "CONFIG_SAVE": "Save configuration"
+  "CONFIG_SAVE": "Save configuration",
+  "JOB_ADD": "+ Add",
+  "JOB_ACTIONS": "Actions",
+  "JOB_RUN": "Run",
+  "LOGS_DATE": "Date",
+  "LOGS_NAME": "Name",
+  "LOGS_DESTINATION": "Destination",
+  "LOGS_SOURCE": "Source",
+  "LOGS_TASK_TYPE": "Task Type",
+  "LOGS_FILE_SIZE": "File Size",
+  "LOGS_DURATION": "Duration",
+  "LOGS_LOG_LEVEL": "Log Level",
+  "LOGS_MESSAGE": "Message",
+  "LOGS_PREVIOUS": "Previous",
+  "LOGS_NEXT": "Next",
+  "PROCESS_NAME": "Process name",
+  "PROCESS_PID": "Process ID",
+  "PROCESS_PATH": "Path"
 }

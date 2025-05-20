@@ -8,6 +8,7 @@ using System.Linq;
 
 namespace EasySave.Views;
 public partial class Logs : INotifyPropertyChanged {
+    public IViewModel ViewModel { get; private set; }
     public ObservableCollection<Log> LogCollection { get; set; }
     public ObservableCollection<Log> PagedLogCollection { get; set; } = new();
     public int PageSize { get; set; } = 20;
@@ -33,6 +34,8 @@ public partial class Logs : INotifyPropertyChanged {
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public Logs(IViewModel viewModel) {
+        this.ViewModel = viewModel;
+
         InitializeComponent();
 
         var logReader = new LogFileJSON();

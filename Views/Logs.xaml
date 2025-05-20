@@ -7,9 +7,8 @@
         mc:Ignorable="av"
         xmlns:logger="clr-namespace:EasySave.Logger;assembly=Logger"
         xmlns:views="clr-namespace:EasySave.Views"
-        av:DataContext="{av:DesignInstance Type=views:Logs}"
 >
-    <Grid Margin="10" x:Name="MainGrid">
+    <Grid Margin="10" x:Name="MainGrid" av:DataContext="{av:DesignInstance Type=views:Logs}">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -23,23 +22,59 @@
                   VerticalAlignment="Stretch"
                   Grid.Row="0">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Date" Binding="{Binding Datetime}" Width="*" />
-                <DataGridTextColumn Header="Name" Binding="{Binding JobName}" Width="*" />
-                <DataGridTextColumn Header="Destination" Binding="{Binding Destination}" Width="*" />
-                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="*" />
-                <DataGridTextColumn Header="TaskType" Binding="{Binding TaskType}" Width="*" />
-                <DataGridTextColumn Header="File Size" Binding="{Binding Filesize}" Width="*" />
-                <DataGridTextColumn Header="Duration" Binding="{Binding TransfertDuration}" Width="*" />
-                <DataGridTextColumn Header="Log Level" Binding="{Binding Level}" Width="*" />
-                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*" />
+                <DataGridTextColumn Width="*" Binding="{Binding Datetime}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_DATE], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding JobName}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_NAME], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Destination}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_DESTINATION], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Source}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_SOURCE], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding TaskType}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_TASK_TYPE], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Filesize}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_FILE_SIZE], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding TransfertDuration}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_DURATION], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Level}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_LOG_LEVEL], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Message}">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[LOGS_MESSAGE], ElementName=MainGrid}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
         <!-- Paging controls -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,10,0,0" Grid.Row="1">
-            <Button Content="Previous" Click="PreviousPage_Click" Margin="5,0" Width="75"
+            <Button Content="{Binding ViewModel.Language.Translations[LOGS_PREVIOUS]}" Click="PreviousPage_Click" Margin="5,0" Width="75"
                     IsEnabled="{Binding IsPreviousEnabled}" />
             <TextBlock Text="{Binding PageIndicator}" VerticalAlignment="Center" Margin="10,0"/>
-            <Button Content="Next" Click="NextPage_Click" Margin="5,0" Width="75"
+            <Button Content="{Binding ViewModel.Language.Translations[LOGS_NEXT]}" Click="NextPage_Click" Margin="5,0" Width="75"
                     IsEnabled="{Binding IsNextEnabled}" />
         </StackPanel>
     </Grid>

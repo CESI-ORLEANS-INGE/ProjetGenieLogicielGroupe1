@@ -100,12 +100,14 @@ namespace EasySave.Views {
         }
 
         private void SelectProcess_Click(object sender, RoutedEventArgs e) {
-            var dlg = new SelectProcess {
+            var dlg = new SelectProcess(this._ViewModel) {
                 Owner = Window.GetWindow(this)
             };
-            if (dlg.ShowDialog() == true && !string.IsNullOrWhiteSpace(dlg.SelectedProcessName)) {
-                if (_ViewModel?.Configuration?.Processes != null && !_ViewModel.Configuration.Processes.Contains(dlg.SelectedProcessName)) {
-                    _ViewModel.Configuration.Processes.Add(dlg.SelectedProcessName);
+            if (dlg.ShowDialog() == true && dlg.SelectedProcesses.Count > 0) {
+                foreach (var processName in dlg.SelectedProcesses) {
+                    if (_ViewModel?.Configuration?.Processes != null && !_ViewModel.Configuration.Processes.Contains(processName)) {
+                        _ViewModel.Configuration.Processes.Add(processName);
+                    }
                 }
             }
         }
