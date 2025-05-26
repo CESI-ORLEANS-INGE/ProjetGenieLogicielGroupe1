@@ -86,7 +86,7 @@ public partial class Logs : INotifyPropertyChanged {
     private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
         var grid = sender as DataGrid;
         if (grid?.SelectedItem is Log selectedLog) {
-            var detailWindow = new LogDetailsWindow(selectedLog);
+            var detailWindow = new LogDetailsWindow(selectedLog, this.ViewModel);
             detailWindow.ShowDialog(); // modal
         }
     }

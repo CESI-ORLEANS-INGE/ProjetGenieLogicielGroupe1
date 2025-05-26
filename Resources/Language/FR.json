@@ -75,5 +75,10 @@
   "LOGS_NEXT": "Suivant",
   "PROCESS_NAME": "Nom du processus",
   "PROCESS_PID": "ID du processus",
-  "PROCESS_PATH": "Chemin"
+  "PROCESS_PATH": "Chemin",
+  "COMMON_OK": "OK",
+  "JOB_EDIT_BROWSE": "Parcourir",
+  "JOB_EDIT_REMOVE": "Supprimer",
+  "JOB_EDIT_CANCEL": "Annuler",
+  "JOB_EDIT_SAVE": "Enregistrer"
 }

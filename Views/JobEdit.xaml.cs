@@ -7,16 +7,16 @@ using EasySave.Model; // Ajout de cette directive
 namespace EasySave.Views {
     public partial class JobEdit : Window {
         // Déclaration d'une variable pour stocker le DataContext de la vue modèle
-        private IViewModel _viewModel;
+        public IViewModel ViewModel { get; private set; }
         public IBackupJobConfiguration Job { get; set; } // Propriété pour stocker la configuration du job de sauvegarde
         // Déclaration d'une variable pour stocker le DataContext de la vue modèle
         public JobEdit(IViewModel viewModel, IBackupJobConfiguration job) {
-            _viewModel = viewModel; // Lier le DataContext à la vue modèle  
+            ViewModel = viewModel; // Lier le DataContext à la vue modèle  
             this.Job = job; // Initialiser la propriété Job avec la configuration du job de sauvegarde
             // Initialiser le DataContext de la fenêtre
             InitializeComponent();
 
-            this.MainGrid.DataContext = this;
+            this.DataContext = this;
         }
 
         // Update the Save_Click method to pass the required 'propertyName' argument to OnPropertyChanged.
@@ -32,7 +32,7 @@ namespace EasySave.Views {
                 // Cast DataContext to the appropriate ViewModel type  
 
                 //change the property
-                _viewModel.OnPropertyChanged(nameof(_viewModel.BackupJobs));
+                ViewModel.OnPropertyChanged(nameof(ViewModel.BackupJobs));
 
                 // Return to the user the success of the operation
                 System.Windows.MessageBox.Show("Sauvegarde réussie !");
@@ -56,7 +56,7 @@ namespace EasySave.Views {
                 ConfirmDeleteWindow confirmDeleteWindow = new();
                 // Show the confirmation dialog and wait for user response
                 if (confirmDeleteWindow.ShowDialog() == true && confirmDeleteWindow.IsConfirmed) {
-                    this._viewModel.Configuration.RemoveJob(this.Job);
+                    this.ViewModel.Configuration.RemoveJob(this.Job);
 
                     System.Windows.MessageBox.Show("Suppression réussie !");
                     this.Close();

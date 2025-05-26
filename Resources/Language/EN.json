@@ -75,5 +75,10 @@
   "LOGS_NEXT": "Next",
   "PROCESS_NAME": "Process name",
   "PROCESS_PID": "Process ID",
-  "PROCESS_PATH": "Path"
+  "PROCESS_PATH": "Path",
+  "COMMON_OK": "OK",
+  "JOB_EDIT_BROWSE": "Browse",
+  "JOB_EDIT_REMOVE": "Remove",
+  "JOB_EDIT_CANCEL": "Cancel",
+  "JOB_EDIT_SAVE": "Save"
 }

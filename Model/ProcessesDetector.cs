@@ -30,6 +30,7 @@ namespace EasySave.Model {
     public class ProcessesDetector : IProcessesDetector {
         private Dictionary<string, bool> Processes { get; set; } = [];
         private Task? Task { get; set; } = null!;
+        private bool _lastState = false;
 
         public ProcessesDetector() {
             List<string> processes = Configuration.Instance?.Processes.ToList() ?? throw new Exception("Configuration is null");
@@ -40,10 +41,15 @@ namespace EasySave.Model {
 
             this.Task = Task.Run(() => {
                 while (true) {
-                    if (!CheckProcesses()) {
-                        NoProcessRunning?.Invoke(this, EventArgs.Empty);
-                    } else {
-                        OneOrMoreProcessRunning?.Invoke(this, new ProcessesEventArgs(this.Processes.Keys.ToList()));
+                    bool state = this.CheckProcesses();
+                    if (state != this._lastState) {
+                        this._lastState = state;
+
+                        if (state) {
+                            OneOrMoreProcessRunning?.Invoke(this, new ProcessesEventArgs(this.Processes.Keys.ToList()));
+                        } else {
+                            NoProcessRunning?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                     Task.Delay(1000).Wait();
                 }
@@ -65,7 +71,7 @@ namespace EasySave.Model {
             List<Process> runningProcesses = [.. Process.GetProcesses()];
 
             foreach (string process in this.Processes.Keys) {
-                bool isRunning = runningProcesses.Any(p => 
+                bool isRunning = runningProcesses.Any(p =>
                     p.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase)
                 );
                 if (isRunning && !this.Processes[process]) {
