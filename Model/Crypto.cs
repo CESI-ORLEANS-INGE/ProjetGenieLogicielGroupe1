@@ -14,7 +14,6 @@ namespace EasySave.Model {
     public class Crypto : ICrypto {
         public Crypto(Configuration config) {
             ExecutablePath = config.CryptoFile;
-
         }
         public string ExecutablePath { get; set; }
         public double Crypt(string filePath) {

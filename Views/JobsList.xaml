@@ -5,7 +5,6 @@
     xmlns:easysave="clr-namespace:EasySave"
     xmlns:converters="clr-namespace:EasySave.Converters"
     xmlns:views="clr-namespace:EasySave.Views"
-    av:DataContext="{av:DesignInstance Type=views:JobsList}"
     Height="Auto" Width="auto" av:DesignHeight="277.436" av:DesignWidth="587.612"
 >
     <Control.Resources>
@@ -26,7 +25,7 @@
 
 
     <!-- CONTENU PRINCIPAL -->
-    <Grid Grid.Column="1" Margin="10" x:Name="GridMain">
+    <Grid Grid.Column="1" Margin="10" x:Name="GridMain" av:DataContext="{av:DesignInstance Type=views:JobsList}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <!-- Zone ajout -->
@@ -36,7 +35,7 @@
             <!-- Bouton Run -->
         </Grid.RowDefinitions>
         <!-- Bouton Add -->
-        <Button Content="+ Add" Width="100" Height="30" HorizontalAlignment="Right" Margin="0,0,0,10" Grid.Row="0" Background="White" Click="AddJob"/>
+        <Button Content="{Binding ViewModel.Language.Translations[JOB_ADD]}" Width="100" Height="30" HorizontalAlignment="Right" Margin="0,0,0,10" Grid.Row="0" Background="White" Click="AddJob"/>
         <!-- DataGrid Jobs -->
         <DataGrid 
             ItemsSource="{Binding ViewModel.Configuration.Jobs}"
@@ -45,13 +44,30 @@
             CellStyle="{StaticResource Body_Content_DataGrid_Centering}"
         >
             <DataGrid.Columns>
-                <!-- <DataGridCheckBoxColumn Header="" Width="40"/> -->
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="*" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Destination" Width="*" Binding="{Binding Destination}" IsReadOnly="True"/>
-                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="*" IsReadOnly="True"/>
-                <!-- Colonne Actions -->
-                <DataGridTemplateColumn Header="Actions" Width="80" IsReadOnly="True">
+                <DataGridTextColumn Width="*" Binding="{Binding Name}" IsReadOnly="True">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[JOB_NAME], ElementName=GridMain}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Source}" IsReadOnly="True">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[JOB_SOURCE], ElementName=GridMain}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Destination}" IsReadOnly="True">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[JOB_DESTINATION], ElementName=GridMain}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTextColumn Width="*" Binding="{Binding Type}" IsReadOnly="True">
+                    <DataGridTextColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[JOB_TYPE], ElementName=GridMain}" />
+                    </DataGridTextColumn.Header>
+                </DataGridTextColumn>
+                <DataGridTemplateColumn Width="80" IsReadOnly="True">
+                    <DataGridTemplateColumn.Header>
+                        <TextBlock Text="{Binding DataContext.ViewModel.Language.Translations[JOB_ACTIONS], ElementName=GridMain}" />
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
@@ -64,7 +80,7 @@
             </DataGrid.Columns>
         </DataGrid>
         <!-- Bouton RUN -->
-        <Button Content="Run" Width="100" Height="30"
+        <Button Content="{Binding ViewModel.Language.Translations[JOB_RUN]}" Width="100" Height="30"
             HorizontalAlignment="Right" Grid.Row="2" Background="White" Click="RunSelectedJobs_Click"/>
     </Grid>
 </UserControl>

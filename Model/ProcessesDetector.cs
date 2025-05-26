@@ -30,6 +30,7 @@ namespace EasySave.Model {
     public class ProcessesDetector : IProcessesDetector {
         private Dictionary<string, bool> Processes { get; set; } = [];
         private Task? Task { get; set; } = null!;
+        private bool _lastState = false;
 
         public ProcessesDetector() {
             List<string> processes = Configuration.Instance?.Processes.ToList() ?? throw new Exception("Configuration is null");
@@ -40,21 +41,39 @@ namespace EasySave.Model {
 
             this.Task = Task.Run(() => {
                 while (true) {
-                    if (!CheckProcesses()) {
-                        NoProcessRunning?.Invoke(this, EventArgs.Empty);
-                    } else {
-                        OneOrMoreProcessRunning?.Invoke(this, new ProcessesEventArgs(this.Processes.Keys.ToList()));
+                    bool state = this.CheckProcesses();
+                    if (state != this._lastState) {
+                        this._lastState = state;
+
+                        if (state) {
+                            OneOrMoreProcessRunning?.Invoke(this, new ProcessesEventArgs(this.Processes.Keys.ToList()));
+                        } else {
+                            NoProcessRunning?.Invoke(this, EventArgs.Empty);
+                        }
                     }
                     Task.Delay(1000).Wait();
                 }
             });
+
+            if (Configuration.Instance is not null) {
+                Configuration.Instance.ConfigurationChanged += OnConfigurationChanged;
+            }
+        }
+
+        private void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
+            if (Configuration.Instance is null) return;
+            if (e.PropertyName != nameof(Configuration.Instance.Processes)) return;
+
+            this.Processes = Configuration.Instance.Processes.ToDictionary(process => process, process => this.Processes.TryGetValue(process, out bool value) && value);
         }
 
         public bool CheckProcesses() {
             List<Process> runningProcesses = [.. Process.GetProcesses()];
 
             foreach (string process in this.Processes.Keys) {
-                bool isRunning = runningProcesses.Any(p => p.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase));
+                bool isRunning = runningProcesses.Any(p =>
+                    p.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase)
+                );
                 if (isRunning && !this.Processes[process]) {
                     this.Processes[process] = true;
                     ProcessStarded?.Invoke(this, new ProcessEventArgs(process));
