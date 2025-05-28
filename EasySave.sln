@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySave.Tests", "EasySave.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CryptoSoft", "CryptoSoft\CryptoSoft.csproj", "{F17AC4F9-E834-354E-B694-7C47867E9A79}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyRemote", "..\EasyRemote\EasyRemote.csproj", "{A7A1A4D4-E04D-4F81-A066-FF7CE80FB542}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasyRemote", "EasyRemote\EasyRemote.csproj", "{A7A1A4D4-E04D-4F81-A066-FF7CE80FB542}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
