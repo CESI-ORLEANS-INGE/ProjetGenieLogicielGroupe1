@@ -21,13 +21,13 @@
 
     <!-- CONTENU PRINCIPAL -->
     <Grid Margin="10" x:Name="MainGrid">
-        <Grid.RowDefinitions> 
+        <Grid.RowDefinitions>
             <!-- Jobs List -->
             <RowDefinition Height="*"/>
             <!-- Footer -->
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-      
+
         <ScrollViewer Grid.Row="0" Padding="0,0,10,0" Margin="0,0,0,10" VerticalScrollBarVisibility="Visible">
             <ItemsControl x:Name="RunningJobsList" ItemsSource="{Binding RunningJobList}">
                 <ItemsControl.ItemTemplate>
@@ -103,7 +103,15 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Grid.Row="0"/>
+                                    <!-- Conteneur pour la barre de progression et le pourcentage -->
+                                    <Grid Grid.Column="0">
+                                        <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGreen" Maximum="100"/>
+                                        <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="Bold"
+                                                   Foreground="Black"/>
+                                    </Grid>
 
                                     <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_PAUSE], ElementName=MainGrid}"  Width="100" Height="30" Grid.Column="2" Visibility="Hidden"/>
                                     <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_CANCEL], ElementName=MainGrid}"  Width="100" Height="30" Grid.Column="4" Click="CancelButton_Click" DataContext="{Binding Path=.}"/>
@@ -132,7 +140,15 @@
                     <Label Content="/"/>
                     <Label Content="{Binding TotalFilesToCopy}"/>
                 </StackPanel>
-                <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray"/>
+                <!-- Conteneur pour la barre de progression globale et son pourcentage -->
+                <Grid Height="24" Margin="0,5,0,0">
+                    <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGreen" Maximum="100"/>
+                    <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
+                               HorizontalAlignment="Center" 
+                               VerticalAlignment="Center"
+                               FontWeight="Bold"
+                               Foreground="Black"/>
+                </Grid>
             </StackPanel>
 
             <Grid Grid.Column="1">
