@@ -10,6 +10,12 @@ namespace EasySave.Views {
         public IViewModel ViewModel { get; private set; }
         public IBackupJobConfiguration Job { get; set; } // Propriété pour stocker la configuration du job de sauvegarde
         // Déclaration d'une variable pour stocker le DataContext de la vue modèle
+        public bool IsOk { get; set; }
+
+        public new bool ShowDialog() { 
+            base.ShowDialog();
+            return IsOk;
+        }
         public JobEdit(IViewModel viewModel, IBackupJobConfiguration job) {
             ViewModel = viewModel; // Lier le DataContext à la vue modèle  
             this.Job = job; // Initialiser la propriété Job avec la configuration du job de sauvegarde
@@ -36,7 +42,7 @@ namespace EasySave.Views {
 
                 // Return to the user the success of the operation
                 System.Windows.MessageBox.Show("Sauvegarde réussie !");
-
+                this.IsOk = true;
                 //close the window
                 this.Close();
             } catch (Exception ex) {
@@ -85,6 +91,7 @@ namespace EasySave.Views {
                     if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                         // Set the selected path to the PathSource TextBox
                         PathSource.Text = folderBrowserDialog.SelectedPath;
+                        Job.Source = folderBrowserDialog.SelectedPath;
                     }
                 }
             }
@@ -110,6 +117,7 @@ namespace EasySave.Views {
                     if (folderBrowserDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
                         // Set the selected path to the PathDestination TextBox
                         PathDestination.Text = folderBrowserDialog.SelectedPath;
+                        Job.Destination = folderBrowserDialog.SelectedPath;
                     }
                 }
             }
