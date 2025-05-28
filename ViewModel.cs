@@ -9,10 +9,12 @@ using System.Threading.Tasks;
 
 namespace EasySave;
 
-public class LanguageChangedEventArgs(string language) : EventArgs {
+public class LanguageChangedEventArgs(string language) : EventArgs
+{
     public string? Language { get; set; } = language;
 }
-public class JobStateChangedEventArgs(IBackupJobState jobState) : EventArgs {
+public class JobStateChangedEventArgs(IBackupJobState jobState) : EventArgs
+{
     public IBackupJobState? JobState { get; set; } = jobState;
 }
 
@@ -20,7 +22,8 @@ public delegate void LanguageChangedEventHandler(object sender, LanguageChangedE
 public delegate void JobStateChangedEventHandler(object sender, JobStateChangedEventArgs e);
 public delegate void ConfigurationChangedEventHandler(object sender, ConfigurationChangedEventArgs e);
 
-public interface IViewModel : INotifyPropertyChanged {
+public interface IViewModel : INotifyPropertyChanged
+{
 
     /// <summary>
     /// List of all backup jobs.
@@ -103,7 +106,11 @@ public interface IViewModel : INotifyPropertyChanged {
     string Processes { get; set; }
 }
 
-public class ViewModel : IViewModel {
+public class ViewModel : IViewModel
+{
+    private const long MAX_TOTAL_TRANSFER_SIZE_KB = 1024000;
+    private static long _totalTransferSizeKB = 0;
+    private static readonly object _transferLock = new object();
     public const string CONFIGURATION_PATH = "./configuration.json";
 
     public List<IBackupJob> BackupJobs { get; set; } = [];
@@ -113,7 +120,8 @@ public class ViewModel : IViewModel {
     public ILogger Logger { get; set; }
     public IProcessesDetector ProcessesDetector { get; set; }
 
-    public ViewModel() {
+    public ViewModel()
+    {
         ConfigurationManager configurationManager = new(typeof(ConfigurationJSONFile));
         this.Configuration = configurationManager.Load(ViewModel.CONFIGURATION_PATH);
         this.Configuration.ConfigurationChanged += this.OnConfigurationChanged;
@@ -124,9 +132,11 @@ public class ViewModel : IViewModel {
 
         this.ProcessesDetector = new ProcessesDetector();
         this.ProcessesDetector.OneOrMoreProcessRunning += (sender, e) => {
-            foreach (IBackupJob job in this.BackupJobs) {
+            foreach (IBackupJob job in this.BackupJobs)
+            {
                 job.Stop();
-                Logger?.Info(new Log {
+                Logger?.Info(new Log
+                {
                     JobName = job.Name,
                     Message = "One or more processes are running, stopping the backup job.",
                 });
@@ -136,32 +146,47 @@ public class ViewModel : IViewModel {
         this.Logger = new Logger.Logger(this.Configuration.LogFile);
     }
 
-    public async void RunCommandRun(List<string> indexOrNameList) {
-        const int MAX_CONCURRENT_JOBS = 1;
+    public async void RunCommandRun(List<string> indexOrNameList)
+    {
+        const int MAX_CONCURRENT_JOBS = 10;
+
+        // Utilisation de SemaphoreSlim au lieu de Mutex pour async/await
+        using SemaphoreSlim mutex = new(1, 1);
 
         List<IBackupJobConfiguration> jobsToRun = [];
 
-        foreach (string indexOrName in indexOrNameList) {
+        foreach (string indexOrName in indexOrNameList)
+        {
             // Check if the indexOrName is a number
-            if (int.TryParse(indexOrName, out int id)) {
+            if (int.TryParse(indexOrName, out int id))
+            {
                 id = id - 1; // Adjust for 0-based index
-                if (id < 0 || id >= this.Configuration.Jobs.Count) {
+                if (id < 0 || id >= this.Configuration.Jobs.Count)
+                {
                     throw new Exception($"No backup job found with index: {indexOrName}");
-                } else {
+                }
+                else
+                {
                     jobsToRun.Add(this.Configuration.Jobs[id]);
                 }
-            } else {
+            }
+            else
+            {
                 IBackupJobConfiguration? job = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
-                if (job is null) {
+                if (job is null)
+                {
                     throw new Exception($"No backup job found with name: {indexOrName}");
-                } else {
+                }
+                else
+                {
                     jobsToRun.Add(job);
                 }
             }
         }
 
         // Check if there are any jobs to run
-        if (jobsToRun.Count == 0) {
+        if (jobsToRun.Count == 0)
+        {
             throw new Exception("No backup jobs available.");
         }
 
@@ -169,22 +194,174 @@ public class ViewModel : IViewModel {
 
         IStateFile file = new StateFile(this.Configuration.StateFile);
         using (this.BackupState = new BackupState(file))
+        {
             this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
-        SemaphoreSlim semaphore = new(MAX_CONCURRENT_JOBS);
-        await Task.WhenAll([.. this.BackupJobs.Select(job => Task.Run(async () => {
-            await semaphore.WaitAsync();
-            try {
-                job.Analyze();
-                this.BackupState.CreateJobState(job);
-                await job.Run();
-            } finally {
-                semaphore.Release();
-            }
-        }))]);
+            using SemaphoreSlim semaphore = new(MAX_CONCURRENT_JOBS);
+            await Task.WhenAll([.. this.BackupJobs.Select(job => Task.Run(async () => {
+                await semaphore.WaitAsync();
+                try
+                {
+                    // Section critique protégée par le mutex
+                    await mutex.WaitAsync();
+                    try
+                    {
+                        job.Analyze();
+                        this.BackupState.CreateJobState(job);
+                    }
+                    finally
+                    {
+                        mutex.Release();
+                    }
+
+                    await RunJobWithTransferControl(job);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            }))]);
+        }
     }
-    public void RunCommandAdd(string name, string source, string destination, string type) {
-        if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
+
+    private async Task RunJobWithTransferControl(IBackupJob job)
+    {
+        // Estimation de la taille du job
+        long estimatedSizeKB = GetEstimatedJobSizeKB(job);
+
+        // Vérification si on peut démarrer ce transfert
+        bool canStart = false;
+        lock (_transferLock)
+        {
+            if (_totalTransferSizeKB + estimatedSizeKB <= MAX_TOTAL_TRANSFER_SIZE_KB)
+            {
+                _totalTransferSizeKB += estimatedSizeKB;
+                canStart = true;
+            }
+        }
+
+        if (!canStart)
+        {
+            Logger?.Warning(new Log
+            {
+                JobName = job.Name,
+                Message = $"Transfert annulé - limite de {MAX_TOTAL_TRANSFER_SIZE_KB} KB dépassée. Taille actuelle: {_totalTransferSizeKB} KB, Taille demandée: {estimatedSizeKB} KB"
+            });
+            return;
+        }
+
+        try
+        {
+            Logger?.Info(new Log
+            {
+                JobName = job.Name,
+                Message = $"Démarrage du transfert. Taille: {estimatedSizeKB} KB, Total en cours: {_totalTransferSizeKB} KB"
+            });
+
+            await job.Run();
+
+            Logger?.Info(new Log
+            {
+                JobName = job.Name,
+                Message = $"Transfert terminé avec succès. Taille: {estimatedSizeKB} KB"
+            });
+        }
+        catch (Exception ex)
+        {
+            Logger?.Error(new Log
+            {
+                JobName = job.Name,
+                Message = $"Erreur lors du transfert: {ex.Message}"
+            });
+            throw;
+        }
+        finally
+        {
+            // Libération de la taille utilisée
+            lock (_transferLock)
+            {
+                _totalTransferSizeKB -= estimatedSizeKB;
+                Logger?.Info(new Log
+                {
+                    JobName = job.Name,
+                    Message = $"Libération de {estimatedSizeKB} KB. Total restant: {_totalTransferSizeKB} KB"
+                });
+            }
+        }
+    }
+
+    private long GetEstimatedJobSizeKB(IBackupJob job)
+    {
+        try
+        {
+            if (job.Source != null && System.IO.Directory.Exists(job.Source.GetPath()))
+            {
+                var directoryInfo = new System.IO.DirectoryInfo(job.Source.GetPath());
+                long totalBytes = GetDirectorySize(directoryInfo);
+                return totalBytes / 1024;
+            }
+            else if (job.Source != null && System.IO.File.Exists(job.Source.GetPath()))
+            {
+                var fileInfo = new System.IO.FileInfo(job.Source.GetPath());
+                return fileInfo.Length / 1024;
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger?.Warning(new Log
+            {
+                JobName = job.Name,
+                Message = $"Impossible d'estimer la taille du job: {ex.Message}"
+            });
+        }
+
+        return 102400; // 100 MB par défaut
+    }
+
+    private long GetDirectorySize(System.IO.DirectoryInfo directoryInfo)
+    {
+        long size = 0;
+        try
+        {
+            foreach (System.IO.FileInfo file in directoryInfo.GetFiles())
+            {
+                size += file.Length;
+            }
+            foreach (System.IO.DirectoryInfo subDirectory in directoryInfo.GetDirectories())
+            {
+                size += GetDirectorySize(subDirectory);
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Ignorer les dossiers inaccessibles
+        }
+        catch (System.IO.DirectoryNotFoundException)
+        {
+            // Ignorer les dossiers inexistants
+        }
+        return size;
+    }
+
+    // Méthode pour obtenir la taille totale actuelle (pour monitoring)
+    public static long GetCurrentTotalTransferSize()
+    {
+        lock (_transferLock)
+        {
+            return _totalTransferSizeKB;
+        }
+    }
+
+    // Méthode pour obtenir la limite maximale
+    public static long GetMaxTotalTransferSize()
+    {
+        return MAX_TOTAL_TRANSFER_SIZE_KB;
+    }
+
+    public void RunCommandAdd(string name, string source, string destination, string type)
+    {
+        if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null)
+        {
             throw new Exception($"A backup job with the name '{name}' already exists.");
         }
 
@@ -192,12 +369,14 @@ public class ViewModel : IViewModel {
             job.Source.Equals(source, StringComparison.OrdinalIgnoreCase) &&
             job.Destination.Equals(destination, StringComparison.OrdinalIgnoreCase) &&
             job.Type.Equals(type, StringComparison.OrdinalIgnoreCase)
-         ) is not null) {
+         ) is not null)
+        {
             throw new Exception($"A backup job with the same source, destination and type already exists.");
         }
 
         // Create a new backup job configuration
-        IBackupJobConfiguration newJob = new BackupJobConfiguration {
+        IBackupJobConfiguration newJob = new BackupJobConfiguration
+        {
             Name = name,
             Source = source,
             Destination = destination,
@@ -207,50 +386,70 @@ public class ViewModel : IViewModel {
         // Add the new job to the configuration
         this.Configuration.AddJob(newJob);
     }
-    public void RunCommandRemove(string indexOrName) {
-        if (this.Configuration.Jobs.Count == 0) {
+
+    public void RunCommandRemove(string indexOrName)
+    {
+        if (this.Configuration.Jobs.Count == 0)
+        {
             throw new Exception("No backup jobs available.");
         }
 
         IBackupJobConfiguration? jobToRemove = null;
         // Check if the indexOrName is a number
-        if (int.TryParse(indexOrName, out int id)) {
+        if (int.TryParse(indexOrName, out int id))
+        {
             id = id - 1; // Adjust for 0-based index
-            if (id < 0 || id >= this.Configuration.Jobs.Count) {
+            if (id < 0 || id >= this.Configuration.Jobs.Count)
+            {
                 jobToRemove = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
-            } else {
+            }
+            else
+            {
                 // Remove the backup job by index
                 jobToRemove = this.Configuration.Jobs[id];
             }
-        } else {
+        }
+        else
+        {
             jobToRemove = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
         }
 
-        if (jobToRemove is null) {
+        if (jobToRemove is null)
+        {
             throw new Exception($"No backup job found with name or index: {indexOrName}");
         }
 
         // Remove the backup job from the configuration
         this.Configuration.RemoveJob(jobToRemove);
     }
-    public void RunCommandLanguage(string language) {
+
+    public void RunCommandLanguage(string language)
+    {
         this.Language.SetLanguage(language);
     }
-    public void RunCommandLog(string logFilePath) {
+
+    public void RunCommandLog(string logFilePath)
+    {
         Configuration.LogFile = logFilePath;
         Logger.SetLogFile(logFilePath);
     }
-    public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
+
+    public void OnLanguageChanged(object sender, LanguageChangedEventArgs e)
+    {
         this.LanguageChanged?.Invoke(this, e);
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
     }
-    public void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
+
+    public void OnJobStateChanged(object sender, JobStateChangedEventArgs e)
+    {
         this.JobStateChanged?.Invoke(this, e);
 
-        switch (e.JobState?.State) {
+        switch (e.JobState?.State)
+        {
             case State.IN_PROGRESS:
                 IBackupTask task = e.JobState.BackupJob.Tasks[e.JobState.BackupJob.CurrentTaskIndex];
-                this.Logger.Info(new Log {
+                this.Logger.Info(new Log
+                {
                     JobName = e.JobState.BackupJob.Name,
                     Filesize = task.Source?.GetSize() ?? 0,
                     Source = task.Source?.GetPath() ?? string.Empty,
@@ -266,79 +465,89 @@ public class ViewModel : IViewModel {
     }
 
     // Party configuration 🎉
-    public string BLanguage {
+    public string BLanguage
+    {
         get => Configuration.Language;
-        set {
+        set
+        {
             Language.SetLanguage(value);
             OnPropertyChanged(nameof(BLanguage));
             OnPropertyChanged(nameof(Language));
         }
     }
 
-
-    public string StateFile {
+    public string StateFile
+    {
         get => Configuration.StateFile;
-        set {
+        set
+        {
             Configuration.StateFile = value;
             OnPropertyChanged(nameof(StateFile));
         }
     }
 
-
-    public string LogFile {
+    public string LogFile
+    {
         get => Configuration.LogFile;
-        set {
+        set
+        {
             Configuration.LogFile = value;
             OnPropertyChanged(nameof(LogFile));
         }
     }
 
-
-    public string CryptoFile {
+    public string CryptoFile
+    {
         get => Configuration.CryptoFile;
-        set {
+        set
+        {
             Configuration.CryptoFile = value;
             OnPropertyChanged(nameof(CryptoFile));
         }
     }
 
-
-    public string ExtensionsToEncrypt {
+    public string ExtensionsToEncrypt
+    {
         get => string.Join(";", Configuration.CryptoExtentions);
-        set {
+        set
+        {
             Configuration.CryptoExtentions = [.. value.Split(';')];
             OnPropertyChanged(nameof(ExtensionsToEncrypt));
         }
     }
 
-    public string EncryptionKey {
+    public string EncryptionKey
+    {
         get => Configuration.CryptoKey;
-        set {
+        set
+        {
             Configuration.CryptoKey = value;
             OnPropertyChanged(nameof(EncryptionKey));
         }
     }
 
-
-    public string Processes {
+    public string Processes
+    {
         get => string.Join(";", Configuration.Processes);
-        set {
+        set
+        {
             Configuration.Processes = [.. value.Split(";")];
             OnPropertyChanged(nameof(Processes));
         }
     }
 
-
-
-    public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
+    public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e)
+    {
         this.ConfigurationChanged?.Invoke(this, e);
 
-        if (e.PropertyName == nameof(IConfiguration.StateFile) && this.BackupState is not null) {
+        if (e.PropertyName == nameof(IConfiguration.StateFile) && this.BackupState is not null)
+        {
             this.BackupState.File = new StateFile(this.Configuration.StateFile);
         }
     }
 
-    public void OnPropertyChanged(string propertyName) {
+    public void OnPropertyChanged(string propertyName)
+    {
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
@@ -347,4 +556,3 @@ public class ViewModel : IViewModel {
     public event JobStateChangedEventHandler? JobStateChanged;
     public event ConfigurationChangedEventHandler? ConfigurationChanged;
 }
-
