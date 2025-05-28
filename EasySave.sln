@@ -3,15 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySave", "EasySave.csproj", "{8D02ECEF-D0A3-FCC1-6C96-D4952AFC1DE8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySave", "EasySave/EasySave.csproj", "{8D02ECEF-D0A3-FCC1-6C96-D4952AFC1DE8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{C000A97B-2D46-7DE7-E934-66D7144D4963} = {C000A97B-2D46-7DE7-E934-66D7144D4963}
 		{F17AC4F9-E834-354E-B694-7C47867E9A79} = {F17AC4F9-E834-354E-B694-7C47867E9A79}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Logger", "Logger\Logger.csproj", "{C000A97B-2D46-7DE7-E934-66D7144D4963}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EasySave.Tests", "EasySave.Tests\EasySave.Tests.csproj", "{60E39B97-C03A-B7F6-6385-A9C75A8764BB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptoSoft", "CryptoSoft\CryptoSoft.csproj", "{F17AC4F9-E834-354E-B694-7C47867E9A79}"
 EndProject
