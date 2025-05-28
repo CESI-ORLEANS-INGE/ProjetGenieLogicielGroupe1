@@ -21,9 +21,11 @@ namespace EasySave.Views {
             if (sender is System.Windows.Controls.Button button) {
                 var selectedJob = new BackupJobConfiguration();
                 JobEdit jobEdit = new(ViewModel, selectedJob);
-                jobEdit.ShowDialog();
+                if (jobEdit.ShowDialog())
+                {
 
-                this.ViewModel.Configuration.AddJob(selectedJob);
+                    this.ViewModel.Configuration.AddJob(selectedJob);
+                }
             }
         }
 

@@ -22,13 +22,13 @@
 
     <!-- CONTENU PRINCIPAL -->
     <Grid Margin="10" x:Name="MainGrid">
-        <Grid.RowDefinitions> 
+        <Grid.RowDefinitions>
             <!-- Jobs List -->
             <RowDefinition Height="*"/>
             <!-- Footer -->
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-      
+
         <ScrollViewer Grid.Row="0" Padding="0,0,10,0" Margin="0,0,0,10" VerticalScrollBarVisibility="Visible">
             <ItemsControl x:Name="RunningJobsList" ItemsSource="{Binding RunningJobList}">
                 <ItemsControl.ItemTemplate>
@@ -106,7 +106,15 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Grid.Row="0"/>
+                                    <!-- Conteneur pour la barre de progression et le pourcentage -->
+                                    <Grid Grid.Column="0">
+                                        <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGreen" Maximum="100"/>
+                                        <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   FontWeight="Bold"
+                                                   Foreground="Black"/>
+                                    </Grid>
 
                                     <!--
                                     Pause Button: Visible when not paused 
