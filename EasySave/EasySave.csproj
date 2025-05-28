@@ -12,26 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="CryptoSoft\**" />
-    <Compile Remove="Doc\**" />
-    <Compile Remove="EasySave.Tests\**" />
-    <Compile Remove="Logger\**" />
-    <Compile Remove="publish\**" />
-    <EmbeddedResource Remove="CryptoSoft\**" />
-    <EmbeddedResource Remove="Doc\**" />
-    <EmbeddedResource Remove="EasySave.Tests\**" />
-    <EmbeddedResource Remove="Logger\**" />
-    <EmbeddedResource Remove="publish\**" />
-    <None Remove="CryptoSoft\**" />
-    <None Remove="Doc\**" />
-    <None Remove="EasySave.Tests\**" />
-    <None Remove="Logger\**" />
-    <None Remove="publish\**" />
-    <Page Remove="CryptoSoft\**" />
-    <Page Remove="Doc\**" />
-    <Page Remove="EasySave.Tests\**" />
-    <Page Remove="Logger\**" />
-    <Page Remove="publish\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -70,7 +50,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="Logger\Logger.csproj" />
+    <ProjectReference Include="..\Logger\Logger.csproj" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
