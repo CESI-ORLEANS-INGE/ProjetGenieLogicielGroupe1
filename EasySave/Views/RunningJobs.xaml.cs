@@ -99,5 +99,15 @@ namespace EasySave.Views {
         protected void OnPropertyChanged(string propertyName) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        private void PauseOrResumeButton_Click(object sender, RoutedEventArgs e) {
+            if (sender is System.Windows.Controls.Button button && button.DataContext is IBackupJobState jobState) {
+                if (jobState.BackupJob.IsPaused) {
+                    jobState.BackupJob.Resume();
+                } else {
+                    jobState.BackupJob.Pause();
+                }
+            }
+        }
     }
 }
