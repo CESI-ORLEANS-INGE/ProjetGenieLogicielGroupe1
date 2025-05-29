@@ -22,11 +22,14 @@ public class BackupCopyTask : BackupTask {
 
         if (Configuration.Instance is null) { return; }
 
-        Crypto crypto = new(Configuration.Instance);
-
-        string extension = Path.GetExtension(Destination.GetPath()).ToLower();
-        if (Configuration.Instance.CryptoExtentions.Select(ext => ext.StartsWith('.') ? ext.ToLower() : '.' + ext.ToLower()).Contains(extension)) {
-            CryptDuration = crypto.Crypt(Destination.GetPath());
+        ICrypto crypto = Crypto.Acquire();
+        try {
+            string extension = Path.GetExtension(Destination.GetPath()).ToLower();
+            if (Configuration.Instance.CryptoExtentions.Select(ext => ext.StartsWith('.') ? ext.ToLower() : '.' + ext.ToLower()).Contains(extension)) {
+                CryptDuration = crypto.Crypt(Destination.GetPath());
+            }
+        } finally {
+            crypto.Release();
         }
     }
 }

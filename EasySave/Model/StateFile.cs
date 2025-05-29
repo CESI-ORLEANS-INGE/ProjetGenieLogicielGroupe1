@@ -32,14 +32,12 @@ public interface IStateFile {
     /// Saves the current list of backup job states to a file.
     /// </summary>
     public void Save(List<IBackupJobState> jobsState);
-    /// <summary>
-    /// Reads and restores the list of backup job states from a file.
-    /// </summary>
-    public List<IBackupJobState> Read();
 }
 
 public class StateFile(string filePath) : IStateFile {
-    private string FilePath { get; set; } = filePath;
+    private string _FilePath { get; set; } = filePath;
+    private object _LockObject { get; } = new object();
+    private JsonSerializerOptions _SerializerOptions { get; } = new() { WriteIndented = true };
 
     public void Save(List<IBackupJobState> jobsState) {
         var dtoList = new List<JobStateDto>();
@@ -57,43 +55,11 @@ public class StateFile(string filePath) : IStateFile {
             };
             dtoList.Add(dto);
         }
-        var jsonString = JsonSerializer.Serialize(dtoList, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(this.FilePath, jsonString);
-    }
+        var jsonString = JsonSerializer.Serialize(dtoList, _SerializerOptions);
 
-    public List<IBackupJobState> Read() {
-        throw new NotImplementedException("This method is not implemented yet");
-        /*
-        string jsonString = File.ReadAllText("c:\\temp\\state.json");
-
-
-        var dtoList = JsonSerializer.Deserialize<List<JobStateDto>>(jsonString);
-        var result = new List<IBackupJobState>();
-
-        foreach (var dto in dtoList)
-        {
-            IBackupJob Job = new BackupJob()
-            {
-                Name = dto.Name
-            };
-
-            BackupJobState jobState = new BackupJobState(Job)
-            {
-                SourceFilePath = dto.SourceFilePath,
-                DestinationFilePath = dto.TargetFilePath,
-                TotalFilesToCopy = dto.TotalFilesToCopy,
-                TotalFilesSize = dto.TotalFilesSize,
-                FilesLeft = dto.NbFilesLeftToDo,
-                FilesLeftSize = dto.TotalFilesSize - (dto.TotalFilesSize * dto.Progression / 100.0),
-                Progression = dto.Progression,
-                State = Enum.Parse<State>(dto.State)
-            };
-
-            result.Add((IBackupJobState)jobState);
+        lock (this._LockObject) {
+            File.WriteAllText(this._FilePath, jsonString);
         }
-
-        return result;
-        */
     }
 }
 

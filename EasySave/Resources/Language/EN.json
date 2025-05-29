@@ -74,6 +74,8 @@
   "LOGS_MESSAGE": "Message",
   "LOGS_PREVIOUS": "Previous",
   "LOGS_NEXT": "Next",
+  "LOGS_FIRST": "First",
+  "LOGS_LAST": "LAST",
   "PROCESS_NAME": "Process name",
   "PROCESS_PID": "Process ID",
   "PROCESS_PATH": "Path",

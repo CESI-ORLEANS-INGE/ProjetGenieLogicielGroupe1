@@ -108,27 +108,13 @@
 
                                     <!-- Conteneur pour la barre de progression et le pourcentage -->
                                     <Grid Grid.Column="0">
-                                        <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGreen" Maximum="100"/>
+                                        <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Maximum="100"/>
                                         <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
                                                    HorizontalAlignment="Center" 
                                                    VerticalAlignment="Center"
                                                    FontWeight="Bold"
                                                    Foreground="Black"/>
                                     </Grid>
-
-                                    <!--
-                                    Pause Button: Visible when not paused 
-                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_PAUSE], ElementName=MainGrid}"
-                                            Width="100" Height="30" Grid.Column="2"
-                                            Visibility="{Binding BackupJob.IsPaused, Converter={StaticResource BoolToVis}}"
-                                            Click="PauseButton_Click"/>
-
-                                    Resume Button: Visible when paused
-                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_RESUME], ElementName=MainGrid}"
-                                            Width="100" Height="30" Grid.Column="2"
-                                            Visibility="{Binding BackupJob.IsPaused, Converter={StaticResource BoolToVis}}" 
-                                            Click="ResumeButton_Click"/>
-                                    -->
 
                                     <Button Width="100" Height="30" Grid.Column="2"
                                             Click="PauseOrResumeButton_Click">
@@ -206,7 +192,14 @@
                 </Grid>
 
                 <!-- Third row: Progress bar -->
-                <ProgressBar Grid.Row="2" Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Margin="0,5,0,0"/>
+                <Grid Grid.Row="2">
+                    <ProgressBar Grid.Row="2" Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Margin="0,5,0,0"/>
+                    <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       FontWeight="Bold"
+                       Foreground="Black"/>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
