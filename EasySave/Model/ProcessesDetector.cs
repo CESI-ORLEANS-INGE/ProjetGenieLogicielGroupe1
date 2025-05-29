@@ -215,6 +215,12 @@ namespace EasySave.Model
                 {
                     this.Processes[process] = false;
                     ProcessEnded?.Invoke(this, new ProcessEventArgs(process));
+
+                    if (this.Processes.Values.All(p => !p))
+                    {
+                        // Si tous les processus sont arrêtés, déclenche l'événement NoProcessRunning
+                        NoProcessRunning?.Invoke(this, EventArgs.Empty);
+                    }
                 }
             }
 
@@ -244,6 +250,8 @@ namespace EasySave.Model
         /// </summary>
         public event OneOrMoreProcessRunningEventHandler? OneOrMoreProcessRunning;
         #endregion
+
+
     }
     #endregion
 }

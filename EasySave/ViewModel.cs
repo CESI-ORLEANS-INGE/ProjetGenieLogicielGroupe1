@@ -125,10 +125,23 @@ public class ViewModel : IViewModel {
         this.ProcessesDetector = new ProcessesDetector();
         this.ProcessesDetector.OneOrMoreProcessRunning += (sender, e) => {
             foreach (IBackupJob job in this.BackupJobs) {
-                job.Stop();
+                job.Pause();
                 Logger?.Info(new Log {
                     JobName = job.Name,
                     Message = "One or more processes are running, stopping the backup job.",
+                });
+            }
+        };
+        
+        this.ProcessesDetector.NoProcessRunning += (sender, e) =>
+        {
+            foreach (IBackupJob job in this.BackupJobs)
+            {
+                job.Resume();
+                Logger?.Info(new Log
+                {
+                    JobName = job.Name,
+                    Message = "No processes are running, resuming the backup job.",
                 });
             }
         };
