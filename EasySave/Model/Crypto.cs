@@ -134,6 +134,19 @@ public class Crypto : ICrypto {
         List<Process> processes = [.. Process.GetProcessesByName("CryptoSoft")];
         if (processes.Count == 0) {
             Process.Start(_Instance!._ExecutablePath);
+            Process process = new() {
+                StartInfo = new ProcessStartInfo {
+                    FileName = _Instance!._ExecutablePath,
+                    CreateNoWindow = true
+                }
+            };
+
+            try {
+                process.Start();
+            } catch (Exception ex) {
+                Debug.WriteLine($"Failed to start CryptoSoft: {ex.Message}");
+                throw new InvalidOperationException("Failed to start CryptoSoft. Ensure the executable path is correct.", ex);
+            }
         }
     }
 

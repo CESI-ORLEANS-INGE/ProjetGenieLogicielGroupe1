@@ -28,9 +28,9 @@ public static class Program {
                         Console.WriteLine("Connection closed");
                     }
                 }
-                //if (pipes.Count == 0) {
-                //    Environment.Exit(0); // Exit if no pipes are connected
-                //}
+                if (pipes.Count == 0) {
+                    Environment.Exit(0); // Exit if no pipes are connected
+                }
                 Thread.Sleep(1000);
             }
         });
