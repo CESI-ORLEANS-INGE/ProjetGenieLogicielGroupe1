@@ -21,9 +21,11 @@ namespace EasySave.Views {
             if (sender is System.Windows.Controls.Button button) {
                 var selectedJob = new BackupJobConfiguration();
                 JobEdit jobEdit = new(ViewModel, selectedJob);
-                jobEdit.ShowDialog();
+                if (jobEdit.ShowDialog())
+                {
 
-                this.ViewModel.Configuration.AddJob(selectedJob);
+                    this.ViewModel.Configuration.AddJob(selectedJob);
+                }
             }
         }
 
@@ -58,7 +60,6 @@ namespace EasySave.Views {
 
             if (selectedJobs.Count == 0) return;
             this.ViewModel.RunCommandRun([.. selectedJobs.Select(j => j.Name)]);
-
         }
     }
 }
