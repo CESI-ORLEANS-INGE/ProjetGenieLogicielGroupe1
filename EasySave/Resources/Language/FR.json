@@ -74,6 +74,8 @@
   "LOGS_MESSAGE": "Message",
   "LOGS_PREVIOUS": "Précédent",
   "LOGS_NEXT": "Suivant",
+  "LOGS_FIRST": "Début",
+  "LOGS_LAST": "Fin",
   "PROCESS_NAME": "Nom du processus",
   "PROCESS_PID": "ID du processus",
   "PROCESS_PATH": "Chemin",

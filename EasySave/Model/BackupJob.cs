@@ -135,30 +135,36 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
         this.StartedAt = DateTime.Now;
 
         return this.Task = Task.Run(() => {
-            for (this.CurrentTaskIndex = 0; this.CurrentTaskIndex < Tasks.Count - 1; this.CurrentTaskIndex++) {
-                if (this._IsStopped) {
-                    this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
-                    return;
+            ICrypto crypto = Crypto.Acquire();
+
+            try {
+                for (this.CurrentTaskIndex = 0; this.CurrentTaskIndex < Tasks.Count - 1; this.CurrentTaskIndex++) {
+                    if (this._IsStopped) {
+                        this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
+                        return;
+                    }
+
+                    while (this.IsPaused) {
+                        Thread.Sleep(100);
+                    }
+
+                    IBackupTask task = Tasks[this.CurrentTaskIndex];
+                    task.StartTime = DateTime.Now;
+
+                    // dev
+                    Thread.Sleep(500);
+
+                    try {
+                        task.Run();
+                        task.EndTime = DateTime.Now;
+                        this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTaskIndex));
+                    } catch (Exception ex) {
+                        this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
+                        return;
+                    }
                 }
-
-                while (this.IsPaused) {
-                    Thread.Sleep(100);
-                }
-
-                IBackupTask task = Tasks[this.CurrentTaskIndex];
-                task.StartTime = DateTime.Now;
-
-                // dev
-                Thread.Sleep(500);
-
-                try {
-                    task.Run();
-                    task.EndTime = DateTime.Now;
-                    this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTaskIndex));
-                } catch (Exception ex) {
-                    this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
-                    return;
-                }
+            } finally {
+                crypto.Release();
             }
 
             this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));

@@ -40,8 +40,6 @@ namespace EasySave.Views {
                 //change the property
                 ViewModel.OnPropertyChanged(nameof(ViewModel.BackupJobs));
 
-                // Return to the user the success of the operation
-                System.Windows.MessageBox.Show("Sauvegarde réussie !");
                 this.IsOk = true;
                 //close the window
                 this.Close();

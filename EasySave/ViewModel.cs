@@ -30,7 +30,7 @@ public interface IViewModel : INotifyPropertyChanged {
     /// <summary>
     /// Backup state
     /// </summary>
-    IBackupState BackupState { get; set; }
+    IBackupState? BackupState { get; set; }
 
     /// <summary>
     /// Language used in the application.
@@ -113,6 +113,8 @@ public class ViewModel : IViewModel {
     public ILogger Logger { get; set; }
     public IProcessesDetector ProcessesDetector { get; set; }
 
+    private ICrypto Crypto { get; set; }
+
     public ViewModel() {
         ConfigurationManager configurationManager = new(typeof(ConfigurationJSONFile));
         this.Configuration = configurationManager.Load(ViewModel.CONFIGURATION_PATH);
@@ -132,14 +134,11 @@ public class ViewModel : IViewModel {
                 });
             }
         };
-        
-        this.ProcessesDetector.NoProcessRunning += (sender, e) =>
-        {
-            foreach (IBackupJob job in this.BackupJobs)
-            {
+
+        this.ProcessesDetector.NoProcessRunning += (sender, e) => {
+            foreach (IBackupJob job in this.BackupJobs) {
                 job.Resume();
-                Logger?.Info(new Log
-                {
+                Logger?.Info(new Log {
                     JobName = job.Name,
                     Message = "No processes are running, resuming the backup job.",
                 });
@@ -147,6 +146,8 @@ public class ViewModel : IViewModel {
         };
 
         this.Logger = new Logger.Logger(this.Configuration.LogFile);
+
+        this.Crypto = new Crypto(this.Configuration.CryptoFile, this.Configuration.CryptoKey);
     }
 
     public async void RunCommandRun(List<string> indexOrNameList) {
@@ -190,7 +191,9 @@ public class ViewModel : IViewModel {
             try {
                 job.Analyze();
                 this.BackupState.CreateJobState(job);
-                await job.Run();
+                Task task = job.Run();
+                if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) job.Pause();
+                await task;
             } finally {
                 semaphore.Release();
             }
@@ -273,8 +276,18 @@ public class ViewModel : IViewModel {
                 });
                 break;
             case State.CANCEL:
-                Console.WriteLine("Job Cancelled");
+                this.Logger.Info(new Log {
+                    JobName = e.JobState.BackupJob.Name,
+                    Message = "Backup job was cancelled."
+                });
                 break;
+            case State.ERROR:
+                this.Logger.Error(new Log {
+                    JobName = e.JobState.BackupJob.Name,
+                    Message = "An error occurred during the backup job."
+                });
+                break;
+
         }
     }
 

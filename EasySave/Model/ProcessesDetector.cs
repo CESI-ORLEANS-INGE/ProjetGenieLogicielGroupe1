@@ -5,15 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EasySave.Model
-{
+namespace EasySave.Model {
 
     #region Event Args Classes
     /// <summary>
     /// Arguments d'événement pour un processus spécifique
     /// </summary>
-    public class ProcessEventArgs(string processName) : EventArgs
-    {
+    public class ProcessEventArgs(string processName) : EventArgs {
         /// <summary>
         /// Nom du processus concerné par l'événement
         /// </summary>
@@ -23,8 +21,7 @@ namespace EasySave.Model
     /// <summary>
     /// Arguments d'événement pour une liste de processus
     /// </summary>
-    public class ProcessesEventArgs(List<string> processes) : EventArgs
-    {
+    public class ProcessesEventArgs(List<string> processes) : EventArgs {
         /// <summary>
         /// Liste des processus concernés par l'événement
         /// </summary>
@@ -58,13 +55,18 @@ namespace EasySave.Model
     /// <summary>
     /// Interface définissant le contrat pour un détecteur de processus
     /// </summary>
-    public interface IProcessesDetector
-    {
+    public interface IProcessesDetector {
         /// <summary>
         /// Vérifie l'état actuel des processus surveillés
         /// </summary>
         /// <returns>True si au moins un processus surveillé est en cours d'exécution</returns>
         public bool CheckProcesses();
+
+        /// <summary>
+        /// Retourne true si au moins un processus surveillé est en cours d'exécution
+        /// </summary>
+        /// <returns>True si au moins un processus surveillé est actif, sinon false</returns>
+        public bool HasOneOrMoreProcessRunning();
 
         /// <summary>
         /// Événement déclenché lors du démarrage d'un processus surveillé
@@ -92,8 +94,7 @@ namespace EasySave.Model
     /// <summary>
     /// Implémentation du détecteur de processus avec surveillance en temps réel
     /// </summary>
-    public class ProcessesDetector : IProcessesDetector
-    {
+    public class ProcessesDetector : IProcessesDetector {
 
         #region Private Fields
         /// <summary>
@@ -109,44 +110,37 @@ namespace EasySave.Model
         /// <summary>
         /// Dernier état global connu (true = au moins un processus actif, false = aucun processus actif)
         /// </summary>
-        private bool _lastState = false;
+        private bool _LastState = false;
         #endregion
 
         #region Constructor
         /// <summary>
         /// Initialise le détecteur de processus et démarre la surveillance
         /// </summary>
-        public ProcessesDetector()
-        {
+        public ProcessesDetector() {
             // Récupération de la liste des processus à surveiller depuis la configuration
             List<string> processes = Configuration.Instance?.Processes.ToList() ?? throw new Exception("Configuration is null");
 
             // Initialisation du dictionnaire avec tous les processus à l'état "non actif"
-            foreach (string process in processes)
-            {
+            foreach (string process in processes) {
                 this.Processes.Add(process, false);
             }
 
             // Démarrage de la tâche de surveillance en arrière-plan
             this.Task = Task.Run(() => {
-                while (true)
-                {
+                while (true) {
                     // Vérification de l'état actuel des processus
                     bool state = this.CheckProcesses();
 
                     // Détection des changements d'état global
-                    if (state != this._lastState)
-                    {
-                        this._lastState = state;
+                    if (state != this._LastState) {
+                        this._LastState = state;
 
                         // Déclenchement des événements selon le nouvel état
-                        if (state)
-                        {
+                        if (state) {
                             // Au moins un processus est maintenant actif
                             OneOrMoreProcessRunning?.Invoke(this, new ProcessesEventArgs(this.Processes.Keys.ToList()));
-                        }
-                        else
-                        {
+                        } else {
                             // Aucun processus n'est plus actif
                             NoProcessRunning?.Invoke(this, EventArgs.Empty);
                         }
@@ -158,10 +152,16 @@ namespace EasySave.Model
             });
 
             // Abonnement aux changements de configuration
-            if (Configuration.Instance is not null)
-            {
+            if (Configuration.Instance is not null) {
                 Configuration.Instance.ConfigurationChanged += OnConfigurationChanged;
             }
+        }
+        #endregion
+
+        #region Public Methods
+        public bool HasOneOrMoreProcessRunning() {
+            // Vérification de l'état des processus et déclenchement des événements appropriés
+            return this._LastState;
         }
         #endregion
 
@@ -171,8 +171,7 @@ namespace EasySave.Model
         /// </summary>
         /// <param name="sender">Source de l'événement</param>
         /// <param name="e">Arguments contenant le nom de la propriété modifiée</param>
-        private void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e)
-        {
+        private void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
             if (Configuration.Instance is null) return;
 
             // Ne traiter que les changements de la liste des processus
@@ -191,33 +190,28 @@ namespace EasySave.Model
         /// Vérifie l'état de tous les processus surveillés et déclenche les événements appropriés
         /// </summary>
         /// <returns>True si au moins un processus surveillé est en cours d'exécution</returns>
-        public bool CheckProcesses()
-        {
+        public bool CheckProcesses() {
             // Récupération de tous les processus système actuellement en cours d'exécution
             List<Process> runningProcesses = [.. Process.GetProcesses()];
 
             // Vérification de chaque processus surveillé
-            foreach (string process in this.Processes.Keys)
-            {
+            foreach (string process in this.Processes.Keys) {
                 // Recherche du processus dans la liste des processus actifs (insensible à la casse)
                 bool isRunning = runningProcesses.Any(p =>
                     p.ProcessName.Equals(process, StringComparison.OrdinalIgnoreCase)
                 );
 
                 // Détection du démarrage d'un processus
-                if (isRunning && !this.Processes[process])
-                {
+                if (isRunning && !this.Processes[process]) {
                     this.Processes[process] = true;
                     ProcessStarded?.Invoke(this, new ProcessEventArgs(process));
                 }
                 // Détection de l'arrêt d'un processus
-                else if (!isRunning && this.Processes[process])
-                {
+                else if (!isRunning && this.Processes[process]) {
                     this.Processes[process] = false;
                     ProcessEnded?.Invoke(this, new ProcessEventArgs(process));
 
-                    if (this.Processes.Values.All(p => !p))
-                    {
+                    if (this.Processes.Values.All(p => !p)) {
                         // Si tous les processus sont arrêtés, déclenche l'événement NoProcessRunning
                         NoProcessRunning?.Invoke(this, EventArgs.Empty);
                     }
