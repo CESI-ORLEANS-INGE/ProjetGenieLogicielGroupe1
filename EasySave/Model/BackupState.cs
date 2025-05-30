@@ -26,6 +26,8 @@ public interface IBackupState : IDisposable {
     /// </summary>
     public void OnJobStateChanged(object sender, JobStateChangedEventArgs e);
 
+    public string ToJSON(bool indent = true);
+
     public event JobStateChangedEventHandler JobStateChanged;
 }
 
@@ -54,6 +56,10 @@ public class BackupState(IStateFile file) : IBackupState {
         }
 
         GC.SuppressFinalize(this);
+    }
+
+    public string ToJSON(bool indent = true) {
+        return this.File.ToJSON(this.JobState, indent);
     }
 
     public event JobStateChangedEventHandler? JobStateChanged;

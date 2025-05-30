@@ -366,6 +366,10 @@ namespace EasySave.Model {
                 })])
             };
         }
+
+        public override string ToString() {
+            return JsonSerializer.Serialize(this.ToJSON());
+        }
     }
 
 }

@@ -1,4 +1,5 @@
-﻿using EasySave.Logger;
+﻿using EasySave.Helpers;
+using EasySave.Logger;
 using EasySave.Model;
 using System;
 using System.Collections.Generic;
@@ -42,30 +43,7 @@ public interface IViewModel : INotifyPropertyChanged {
     /// </summary>
     IConfiguration Configuration { get; }
 
-    /// <summary>
-    /// Runs the command to start the backup job.
-    /// </summary>
-    void RunCommandRun(List<string> indexOrNameList);
-
-    /// <summary>
-    /// Runs the command to add a new backup job.
-    /// </summary>
-    void RunCommandAdd(string name, string source, string destination, string type);
-
-    /// <summary>
-    /// Runs the command to remove a backup job.
-    /// </summary>
-    void RunCommandRemove(string indexOrName);
-
-    /// <summary>
-    /// Runs the command to change the application language.
-    /// </summary>
-    void RunCommandLanguage(string language);
-
-    /// <summary>
-    /// Runs the command to change the log file path.
-    /// </summary>
-    void RunCommandLog(string logFilePath);
+    ILogger Logger { get; }
 
     /// <summary>
     /// Called when the language is changed.
@@ -101,6 +79,7 @@ public interface IViewModel : INotifyPropertyChanged {
     string ExtensionsToEncrypt { get; set; }
     string EncryptionKey { get; set; }
     string Processes { get; set; }
+    Commands Commands { get; }
 }
 
 public class ViewModel : IViewModel {
@@ -114,6 +93,10 @@ public class ViewModel : IViewModel {
     public IProcessesDetector ProcessesDetector { get; set; }
 
     private ICrypto Crypto { get; set; }
+
+    private SocketServer SocketServer { get; set; }
+
+    public Commands Commands { get; } = new();
 
     public ViewModel() {
         ConfigurationManager configurationManager = new(typeof(ConfigurationJSONFile));
@@ -148,9 +131,67 @@ public class ViewModel : IViewModel {
         this.Logger = new Logger.Logger(this.Configuration.LogFile);
 
         this.Crypto = new Crypto(this.Configuration.CryptoFile, this.Configuration.CryptoKey);
+
+        this.RegisterCommands();
+
+        this.SocketServer = new SocketServer(this);
     }
 
-    public async void RunCommandRun(List<string> indexOrNameList) {
+    public void RegisterCommands() {
+        this.Commands.RegisterCommand("run", (command) => this.RunCommandRun(command.Arguments), this.ParseJobList);
+        this.Commands.RegisterCommand("add", (command) => {
+            if (command.Arguments.Count < 4) {
+                throw new Exception(this.Language.Translations["INVALID_INPUT"]);
+            }
+            this.RunCommandAdd(command.Arguments[0], command.Arguments[1], command.Arguments[2], command.Arguments[3]);
+        });
+        this.Commands.RegisterCommand("remove", (command) => {
+            if (command.Arguments.Count < 1) {
+                throw new Exception(this.Language.Translations["INVALID_INPUT"]);
+            }
+            this.RunCommandRemove(command.Arguments[0]);
+        });
+        this.Commands.RegisterCommand("language", (command) => {
+            if (command.Arguments.Count < 1) {
+                throw new Exception(this.Language.Translations["INVALID_INPUT"]);
+            }
+            this.RunCommandLanguage(command.Arguments[0]);
+        });
+        this.Commands.RegisterCommand("log", (command) => {
+            if (command.Arguments.Count < 1) {
+                throw new Exception(this.Language.Translations["INVALID_INPUT"]);
+            }
+            this.RunCommandLog(command.Arguments[0]);
+        });
+    }
+
+    private List<string> ParseJobList(string jobList) {
+        List<string> indexOrNameList = [];
+
+        foreach (string indexOrName in jobList.Split(',')) {
+            if (indexOrName.Contains('-')) {
+                string[] indexes = indexOrName.Split('-');
+                if (int.TryParse(indexes[0], out int first) && int.TryParse(indexes[1], out int last)) {
+                    (first, last) = (Math.Min(first, last), Math.Max(first, last));
+                    for (int i = first; i <= last; i++) {
+                        if (!indexOrNameList.Contains(i.ToString())) {
+                            indexOrNameList.Add(i.ToString());
+                        }
+                    }
+                } else {
+                    throw new Exception(this.Language.Translations["INVALID_INPUT"] + ": " + (string)indexOrName);
+                }
+            } else {
+                if (!indexOrNameList.Contains(indexOrName)) {
+                    indexOrNameList.Add(indexOrName);
+                }
+            }
+        }
+
+        return indexOrNameList;
+    }
+
+    private async void RunCommandRun(List<string> indexOrNameList) {
         const int MAX_CONCURRENT_JOBS = 1;
 
         List<IBackupJobConfiguration> jobsToRun = [];
@@ -199,7 +240,7 @@ public class ViewModel : IViewModel {
             }
         }))]);
     }
-    public void RunCommandAdd(string name, string source, string destination, string type) {
+    private void RunCommandAdd(string name, string source, string destination, string type) {
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
             throw new Exception($"A backup job with the name '{name}' already exists.");
         }
@@ -223,7 +264,7 @@ public class ViewModel : IViewModel {
         // Add the new job to the configuration
         this.Configuration.AddJob(newJob);
     }
-    public void RunCommandRemove(string indexOrName) {
+    private void RunCommandRemove(string indexOrName) {
         if (this.Configuration.Jobs.Count == 0) {
             throw new Exception("No backup jobs available.");
         }
@@ -249,13 +290,14 @@ public class ViewModel : IViewModel {
         // Remove the backup job from the configuration
         this.Configuration.RemoveJob(jobToRemove);
     }
-    public void RunCommandLanguage(string language) {
+    private void RunCommandLanguage(string language) {
         this.Language.SetLanguage(language);
     }
-    public void RunCommandLog(string logFilePath) {
+    private void RunCommandLog(string logFilePath) {
         Configuration.LogFile = logFilePath;
         Logger.SetLogFile(logFilePath);
     }
+    
     public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
         this.LanguageChanged?.Invoke(this, e);
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
@@ -301,7 +343,6 @@ public class ViewModel : IViewModel {
         }
     }
 
-
     public string StateFile {
         get => Configuration.StateFile;
         set {
@@ -309,7 +350,6 @@ public class ViewModel : IViewModel {
             OnPropertyChanged(nameof(StateFile));
         }
     }
-
 
     public string LogFile {
         get => Configuration.LogFile;
@@ -319,7 +359,6 @@ public class ViewModel : IViewModel {
         }
     }
 
-
     public string CryptoFile {
         get => Configuration.CryptoFile;
         set {
@@ -327,7 +366,6 @@ public class ViewModel : IViewModel {
             OnPropertyChanged(nameof(CryptoFile));
         }
     }
-
 
     public string ExtensionsToEncrypt {
         get => string.Join(";", Configuration.CryptoExtentions);
@@ -345,7 +383,6 @@ public class ViewModel : IViewModel {
         }
     }
 
-
     public string Processes {
         get => string.Join(";", Configuration.Processes);
         set {
@@ -353,8 +390,6 @@ public class ViewModel : IViewModel {
             OnPropertyChanged(nameof(Processes));
         }
     }
-
-
 
     public void OnConfigurationChanged(object sender, ConfigurationChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, e);
