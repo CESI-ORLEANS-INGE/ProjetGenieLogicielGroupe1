@@ -44,5 +44,4 @@ public partial class MainWindow : Window {
         // Set the content of the MainContent to the Configuration view
         MainContent.Content = new Configuration(ViewModel);
     }
-
 }

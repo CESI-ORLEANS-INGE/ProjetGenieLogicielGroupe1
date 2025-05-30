@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,6 +54,8 @@ public interface IBackupJob {
 
     public DateTime StartedAt { get; }
 
+    public bool IsPaused { get; }
+
 
     /// <summary>
     /// Analyzes the source and destination directories to determine the files that need to be backed up.
@@ -66,20 +69,15 @@ public interface IBackupJob {
     public Task Run();
     public void Stop();
 
-    ///// <summary>
-    ///// Pauses the backup job.
-    ///// </summary>
-    //public void Pause();
+    /// <summary>
+    /// Pauses the backup job.
+    /// </summary>
+    public void Pause();
 
-    ///// <summary>
-    ///// Resumes the backup job.
-    ///// </summary>
-    //public void Resume();
-
-    ///// <summary>
-    ///// Cancels the backup job.
-    ///// </summary>
-    //public void Cancel();
+    /// <summary>
+    /// Resumes the backup job.
+    /// </summary>
+    public void Resume();
 
     public event BackupJobEventHandler? BackupJobStarted;
     public event BackupJobProgressEventHandler? BackupJobProgress;
@@ -90,11 +88,11 @@ public interface IBackupJob {
     public event BackupJobCancelledEventHandler? BackupJobCancelled;
 }
 
-public abstract class BackupJob(string name, IDirectoryHandler source, IDirectoryHandler destination) : IBackupJob {
+public abstract class BackupJob(string name, IDirectoryHandler source, IDirectoryHandler destination) : IBackupJob, INotifyPropertyChanged {
     public string Name { get; } = name;
     public IDirectoryHandler Source { get; } = source;
     public IDirectoryHandler Destination { get; } = destination;
-    private bool _isStopped = false;
+    private bool _IsStopped = false;
 
     public List<IBackupTask> Tasks { get; } = [];
     public int CurrentTaskIndex { get; set; } = 0;
@@ -107,12 +105,14 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
         }
     }
 
-    private Task? Task; 
+    private Task? Task;
 
     public DateTime StartedAt {
         get;
         private set;
     }
+
+    public bool IsPaused { get; private set; } = false;
 
     public event BackupJobEventHandler? BackupJobStarted;
     public event BackupJobProgressEventHandler? BackupJobProgress;
@@ -131,31 +131,40 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
             return Task.CompletedTask;
         }
 
-        this._isStopped = false;
+        this._IsStopped = false;
         this.StartedAt = DateTime.Now;
 
-        return this.Task = Task.Run(async () => {
-            for (this.CurrentTaskIndex = 0; this.CurrentTaskIndex < Tasks.Count - 1; this.CurrentTaskIndex++) {
-                if (this._isStopped) {
-                    this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
-                    return;
+        return this.Task = Task.Run(() => {
+            ICrypto crypto = Crypto.Acquire();
+
+            try {
+                for (this.CurrentTaskIndex = 0; this.CurrentTaskIndex < Tasks.Count - 1; this.CurrentTaskIndex++) {
+                    if (this._IsStopped) {
+                        this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
+                        return;
+                    }
+
+                    while (this.IsPaused) {
+                        Thread.Sleep(100);
+                    }
+
+                    IBackupTask task = Tasks[this.CurrentTaskIndex];
+                    task.StartTime = DateTime.Now;
+
+                    // dev
+                    Thread.Sleep(500);
+
+                    try {
+                        task.Run();
+                        task.EndTime = DateTime.Now;
+                        this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTaskIndex));
+                    } catch (Exception ex) {
+                        this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
+                        return;
+                    }
                 }
-
-                IBackupTask task = Tasks[this.CurrentTaskIndex];
-                task.StartTime = DateTime.Now;
-
-                // DEV
-                Console.WriteLine("Run Task" + this.CurrentTaskIndex + " of " + this.Name + " ~ " + string.Join(", ", ((List<string>)[task.Source?.GetName(), task.Destination?.GetName()])));
-                await Task.Delay(500); // Simulate some delay for the task to run
-
-                try {
-                    task.Run();
-                    task.EndTime = DateTime.Now;
-                    this.BackupJobProgress?.Invoke(this, new BackupJobProgressEventArgs(this.Name, this.CurrentTaskIndex));
-                } catch (Exception ex) {
-                    this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
-                    return;
-                }
+            } finally {
+                crypto.Release();
             }
 
             this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
@@ -163,7 +172,26 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
     }
 
     public void Stop() {
-        this._isStopped = true;
+        this._IsStopped = true;
+        this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was stopped."));
     }
+
+    public void Pause() {
+        this.IsPaused = true;
+        this.OnPropertyChanged(nameof(this.IsPaused));
+        this.BackupJobPaused?.Invoke(this, new BackupJobEventArgs(this.Name));
+    }
+
+    public void Resume() {
+        this.IsPaused = false;
+        this.OnPropertyChanged(nameof(this.IsPaused));
+        this.BackupJobResumed?.Invoke(this, new BackupJobEventArgs(this.Name));
+    }
+
+    public void OnPropertyChanged(string propertyName) {
+        this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
 

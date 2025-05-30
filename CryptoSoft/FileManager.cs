@@ -26,7 +26,7 @@ public class FileManager(string path, string key) {
     /// <summary>
     /// Encrypts the file with xor encryption
     /// </summary>
-    public int TransformFile() {
+    public double TransformFile() {
         if (!CheckFile()) return -1;
         Stopwatch stopwatch = Stopwatch.StartNew();
         var fileBytes = File.ReadAllBytes(FilePath);
@@ -34,7 +34,7 @@ public class FileManager(string path, string key) {
         fileBytes = XorMethod(fileBytes, keyBytes);
         File.WriteAllBytes(FilePath, fileBytes);
         stopwatch.Stop();
-        return (int)stopwatch.ElapsedMilliseconds;
+        return stopwatch.ElapsedMilliseconds;
     }
 
     /// <summary>

@@ -21,7 +21,8 @@ public interface IConfigurationFile {
 
 public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
     // set the file path
-    private string FilePath { get; set; } = filePath;
+    private string _FilePath { get; set; } = filePath;
+    private object _LockObject = new();
 
     /// <summary>
     /// Save the configuration to a file
@@ -36,9 +37,11 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             WriteIndented = true
         });
 
-        // write the json object to the file
-        using StreamWriter writer = new(this.FilePath);
-        writer.Write(jsonString);
+        lock (this._LockObject) {
+            // write the json object to the file
+            using StreamWriter writer = new(this._FilePath);
+            writer.Write(jsonString);
+        }
     }
 
     /// <summary>
@@ -51,15 +54,20 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
     public IConfiguration Read() {
         bool isNew = false;
         // check if the file exists
-        if (!File.Exists(this.FilePath)) {
-            // if the file does not exist, create it
-            using StreamWriter writer = new(this.FilePath);
-            writer.Write("{}");
+        if (!File.Exists(this._FilePath)) {
+            lock (this._LockObject) {
+                // if the file does not exist, create it
+                using StreamWriter writer = new(this._FilePath);
+                writer.Write("{}");
+            }
             isNew = true;
         }
 
         // read the file
-        string json = File.ReadAllText(this.FilePath);
+        string json = string.Empty;
+        lock (this._LockObject) {
+            json = File.ReadAllText(this._FilePath);
+        }
         JsonNode? jsonNode = JsonNode.Parse(json);
 
         // check if the json is valid
@@ -71,15 +79,15 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             string logFile = jsonObject["LogFile"]?.ToString() ?? IConfiguration.DEFAULT_LOG_FILE;
             string cryptoFile = jsonObject["CryptoFile"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_FILE;
             string cryptoKey = jsonObject["CryptoKey"]?.ToString() ?? IConfiguration.DEFAULT_CRYPTO_KEY;
-            List<string> cryptoExtentions = jsonObject["CryptoExtensions"] is JsonArray array
-                ? [.. array.Select(x=>x?.ToString() ?? string.Empty)]
+            List<string> cryptoExtentions = jsonObject["CryptoExtentions"] is JsonArray array
+                ? [.. array.Select(x => x?.ToString() ?? string.Empty)]
                 : [];
             List<string> processes = jsonObject["Processes"] is JsonArray array1
                 ? [.. array1.Select(x => x?.ToString() ?? string.Empty)]
                 : [];
 
             // get the jobs from the json object
-            List <IBackupJobConfiguration> jobs = [];
+            List<IBackupJobConfiguration> jobs = [];
             if (jsonObject["Jobs"] is JsonArray jobsArray) {
                 for (int i = 0; i < jobsArray.Count; i++) {
                     JsonNode? job = jobsArray[i];
@@ -121,10 +129,9 @@ public class ConfigurationJSONFile(string filePath) : IConfigurationFile {
             }
 
             return configuration;
-        // if the json is not a valid json object
-        // throw new InvalidOperationException("The JSON content is not a valid JsonObject.");
-        }
-        else {
+            // if the json is not a valid json object
+            // throw new InvalidOperationException("The JSON content is not a valid JsonObject.");
+        } else {
             // return the error
             throw new InvalidOperationException("The JSON content is not a valid JsonObject.");
         }

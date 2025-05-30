@@ -60,7 +60,6 @@ namespace EasySave.Views {
 
             if (selectedJobs.Count == 0) return;
             this.ViewModel.RunCommandRun([.. selectedJobs.Select(j => j.Name)]);
-
         }
     }
 }

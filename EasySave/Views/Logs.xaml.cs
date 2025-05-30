@@ -23,6 +23,8 @@ public partial class Logs : INotifyPropertyChanged {
                 OnPropertyChanged(nameof(PageIndicator));
                 OnPropertyChanged(nameof(IsPreviousEnabled));
                 OnPropertyChanged(nameof(IsNextEnabled));
+                OnPropertyChanged(nameof(IsFirstEnabled));
+                OnPropertyChanged(nameof(IsLastEnabled));
             }
         }
     }
@@ -30,6 +32,8 @@ public partial class Logs : INotifyPropertyChanged {
     public string PageIndicator => $"Page {CurrentPage} of {TotalPages}";
     public bool IsPreviousEnabled => CurrentPage > 1;
     public bool IsNextEnabled => CurrentPage < TotalPages;
+    public bool IsFirstEnabled => CurrentPage > 1;
+    public bool IsLastEnabled => CurrentPage < TotalPages;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -71,6 +75,8 @@ public partial class Logs : INotifyPropertyChanged {
         OnPropertyChanged(nameof(PageIndicator));
         OnPropertyChanged(nameof(IsPreviousEnabled));
         OnPropertyChanged(nameof(IsNextEnabled));
+        OnPropertyChanged(nameof(IsFirstEnabled));
+        OnPropertyChanged(nameof(IsLastEnabled));
     }
 
     private void PreviousPage_Click(object sender, RoutedEventArgs e) {
@@ -81,6 +87,16 @@ public partial class Logs : INotifyPropertyChanged {
     private void NextPage_Click(object sender, RoutedEventArgs e) {
         if (CurrentPage < TotalPages)
             CurrentPage++;
+    }
+
+    private void FirstPage_Click(object sender, RoutedEventArgs e) {
+        if (CurrentPage > 1)
+            CurrentPage = 1;
+    }
+
+    private void LastPage_Click(object sender, RoutedEventArgs e) {
+        if (CurrentPage < TotalPages)
+            CurrentPage = TotalPages;
     }
 
     private void DataGrid_MouseDoubleClick(object sender, MouseButtonEventArgs e) {

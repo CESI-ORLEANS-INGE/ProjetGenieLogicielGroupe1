@@ -17,6 +17,7 @@
     <Control.Resources>
         <converters:DateTimeToStringConverter x:Key="DtToStrConverter"/>
         <converters:EntryHandlerToStringConverter x:Key="EntryToStrConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Control.Resources>
 
     <!-- CONTENU PRINCIPAL -->
@@ -101,11 +102,13 @@
                                         <ColumnDefinition Width="Auto"/>
                                         <ColumnDefinition Width="10"/>
                                         <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
                                     <!-- Conteneur pour la barre de progression et le pourcentage -->
                                     <Grid Grid.Column="0">
-                                        <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGreen" Maximum="100"/>
+                                        <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Maximum="100"/>
                                         <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
                                                    HorizontalAlignment="Center" 
                                                    VerticalAlignment="Center"
@@ -113,8 +116,23 @@
                                                    Foreground="Black"/>
                                     </Grid>
 
-                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_PAUSE], ElementName=MainGrid}"  Width="100" Height="30" Grid.Column="2" Visibility="Hidden"/>
-                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_CANCEL], ElementName=MainGrid}"  Width="100" Height="30" Grid.Column="4" Click="CancelButton_Click" DataContext="{Binding Path=.}"/>
+                                    <Button Width="100" Height="30" Grid.Column="2"
+                                            Click="PauseOrResumeButton_Click">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Content" Value="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_PAUSE], ElementName=MainGrid}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding BackupJob.IsPaused}" Value="True">
+                                                        <Setter Property="Content" Value="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_RESUME], ElementName=MainGrid}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
+                                    <Button Content="{Binding DataContext.ViewModel.Language.Translations[VIEW_RUNNING_CANCEL], ElementName=MainGrid}"
+                                            Width="100" Height="30" Grid.Column="4"
+                                            Click="CancelButton_Click" DataContext="{Binding Path=.}"/>
                                 </Grid>
                             </Grid>
                         </GroupBox>
@@ -129,39 +147,59 @@
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel Orientation="Vertical" Grid.Column="0" Margin="0,0,10,0">
-                <StackPanel Orientation="Horizontal">
-                    <Label Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_STARTED_AT]}"/>
-                    <Label Content="{Binding StartedAt, Converter={StaticResource DtToStrConverter}}"/>
-                </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Label Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_FILE_COPY]}"/>
-                    <Label Content="{Binding TotalFilesLeft}"/>
-                    <Label Content="/"/>
-                    <Label Content="{Binding TotalFilesToCopy}"/>
-                </StackPanel>
-                <!-- Conteneur pour la barre de progression globale et son pourcentage -->
-                <Grid Height="24" Margin="0,5,0,0">
-                    <ProgressBar Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGreen" Maximum="100"/>
-                    <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
-                               HorizontalAlignment="Center" 
-                               VerticalAlignment="Center"
-                               FontWeight="Bold"
-                               Foreground="Black"/>
-                </Grid>
-            </StackPanel>
-
-            <Grid Grid.Column="1">
+            <Grid Grid.Column="0" Margin="0,0,10,0">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="10"/>
-                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <Button x:Name="PauseAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_PAUSE_ALL]}"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
-                <Button x:Name="ResumeAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_RESUME_ALL]}"  Width="100" Height="30" Grid.Row="0" Visibility="Hidden"/>
-                <Button x:Name="RunAllButton" Content="Run All"  Width="100" Height="30" Grid.Row="0" Click="RunAllButton_Click" Visibility="Hidden"/>
-                <Button x:Name="CancelAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_CANCEL_ALL]}"  Width="100" Height="30" Grid.Row="2" Click="CancelAllButton_Click"/>
+                <!-- First row: Started At and Buttons -->
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="140"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="10"/>
+                        <ColumnDefinition Width="100"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Label Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_STARTED_AT]}" Grid.Column="0" VerticalAlignment="Center"/>
+                    <Label Content="{Binding StartedAt, Converter={StaticResource DtToStrConverter}}" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0"/>
+                    <!-- Spacer in Grid.Column="2" -->
+                    <Button x:Name="PauseAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_PAUSE_ALL]}" Width="140" Height="30" Grid.Column="3"/>
+                    <!-- Spacer in Grid.Column="4" -->
+                    <Button x:Name="ResumeAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_RESUME_ALL]}" Width="100" Height="30" Grid.Column="5"/>
+                    <!-- Spacer in Grid.Column="6" -->
+                    <Button x:Name="CancelAllButton" Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_CANCEL_ALL]}" Width="100" Height="30" Grid.Column="7" Click="CancelAllButton_Click"/>
+                </Grid>
+
+                <!-- Second row: File copy info -->
+                <Grid Grid.Row="1" Margin="0,0,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="{Binding ViewModel.Language.Translations[VIEW_RUNNING_FILE_COPY]}" Grid.Column="0"/>
+                    <Label Content="{Binding TotalFilesLeft}" Grid.Column="1" Margin="5,0,0,0"/>
+                    <Label Content="/" Grid.Column="2" Margin="5,0,0,0"/>
+                    <Label Content="{Binding TotalFilesToCopy}" Grid.Column="3" Margin="5,0,0,0"/>
+                </Grid>
+
+                <!-- Third row: Progress bar -->
+                <Grid Grid.Row="2">
+                    <ProgressBar Grid.Row="2" Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Margin="0,5,0,0"/>
+                    <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
+                       HorizontalAlignment="Center" 
+                       VerticalAlignment="Center"
+                       FontWeight="Bold"
+                       Foreground="Black"/>
+                </Grid>
             </Grid>
         </Grid>
     </Grid>
