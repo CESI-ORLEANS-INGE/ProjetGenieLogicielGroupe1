@@ -163,6 +163,18 @@ public class ViewModel : IViewModel {
             }
             this.RunCommandLog(command.Arguments[0]);
         });
+        this.Commands.RegisterCommand("pause", (command) => {
+            if (command.Arguments.Count < 1) {
+                throw new Exception(this.Language.Translations["INVALID_INPUT"]);
+            }
+            this.RunCommandPause(command.Arguments[0]);
+        });
+        this.Commands.RegisterCommand("resume", (command) => {
+            if (command.Arguments.Count < 1) {
+                throw new Exception(this.Language.Translations["INVALID_INPUT"]);
+            }
+            this.RunCommandResume(command.Arguments[0]);
+        });
     }
 
     private List<string> ParseJobList(string jobList) {
@@ -297,7 +309,30 @@ public class ViewModel : IViewModel {
         Configuration.LogFile = logFilePath;
         Logger.SetLogFile(logFilePath);
     }
-    
+    private void RunCommandPause(string nameOrId) {
+        if (this.BackupState is null) {
+            return;
+        }
+        for (int i = 0; i < this.BackupState.JobState.Count; i++) {
+            IBackupJobState jobState = this.BackupState.JobState[i];
+            if (jobState.BackupJob.Name.Equals(nameOrId, StringComparison.OrdinalIgnoreCase) || int.TryParse(nameOrId, out int id) && id - 1 == i
+            ) {
+                jobState.BackupJob.Pause();
+            }
+        }
+    }
+    private void RunCommandResume(string nameOrId) {
+        if (this.BackupState is null) {
+            return;
+        }
+        for (int i = 0; i < this.BackupState.JobState.Count; i++) {
+            IBackupJobState jobState = this.BackupState.JobState[i];
+            if (jobState.BackupJob.Name.Equals(nameOrId, StringComparison.OrdinalIgnoreCase) || int.TryParse(nameOrId, out int id) && id - 1 == i) {
+                jobState.BackupJob.Resume();
+            }
+        }
+    }
+
     public void OnLanguageChanged(object sender, LanguageChangedEventArgs e) {
         this.LanguageChanged?.Invoke(this, e);
         this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
