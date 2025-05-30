@@ -26,10 +26,12 @@ namespace EasyRemote.Views
             var selectedJobs = jobsDataGrid.SelectedItems.Cast<IBackupJob>().ToList();
             if (selectedJobs.Any())
             {
-                
+
                 var jobNames = selectedJobs.Select(job => job.Name);
                 var jobNamesJoined = string.Join(",", jobNames);
                 ViewModel.ClientControler.RunProcess(jobNamesJoined);
 
             }
+        }
+    }
 }

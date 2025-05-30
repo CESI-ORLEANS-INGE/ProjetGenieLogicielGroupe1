@@ -6,10 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
+using EasyRemote.Model;
 
 namespace EasyRemote.Views
 {
-    partial class RunningJobs : INotifyPropertyChanged
+    partial class RunningJobs
     {
         public IViewModel ViewModel { get; private set; }
 
@@ -18,8 +20,53 @@ namespace EasyRemote.Views
             ViewModel = viewModel;
 
             InitializeComponent();
+            this.MainGrid.DataContext = this;
 
-            
+        }
+
+        private void CancelAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (IBackupJob job in ViewModel.ClientControler.BackupJob)
+            {
+                ViewModel.ClientControler.CancelProcess(job.Name);
+            }
+        }
+
+        private void ResumeAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (IBackupJob job in ViewModel.ClientControler.BackupJob)
+            {
+                ViewModel.ClientControler.ResumeProcess(job.Name);
+            }
+        }
+
+        private void PauseAllButton_Click(object sender, RoutedEventArgs e)
+        {
+            foreach (IBackupJob job in ViewModel.ClientControler.BackupJob)
+            {
+                ViewModel.ClientControler.PauseProcess(job.Name);
+            }
+        }
+        private void PauseOrResumeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button button && button.DataContext is IBackupJobState jobState)
+            {
+                if (jobState.BackupJob.IsPaused)
+                {
+                    ViewModel.ClientControler.ResumeProcess(jobState.BackupJob.Name);
+                }
+                else
+                {
+                    ViewModel.ClientControler.PauseProcess(jobState.BackupJob.Name);
+                }
+            }
+        }
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button button && button.DataContext is IBackupJobState jobState)
+            {
+                ViewModel.ClientControler.CancelProcess(jobState.BackupJob.Name);
+            }
+        }
+    }
 }
-
-

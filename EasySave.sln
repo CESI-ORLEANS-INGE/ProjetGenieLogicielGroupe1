@@ -4,10 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.13.35931.197
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EasySave", "EasySave\EasySave.csproj", "{8D02ECEF-D0A3-FCC1-6C96-D4952AFC1DE8}"
-	ProjectSection(ProjectDependencies) = postProject
-		{C000A97B-2D46-7DE7-E934-66D7144D4963} = {C000A97B-2D46-7DE7-E934-66D7144D4963}
-		{F17AC4F9-E834-354E-B694-7C47867E9A79} = {F17AC4F9-E834-354E-B694-7C47867E9A79}
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Logger", "Logger\Logger.csproj", "{C000A97B-2D46-7DE7-E934-66D7144D4963}"
 EndProject

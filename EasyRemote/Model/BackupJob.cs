@@ -12,10 +12,12 @@ namespace EasyRemote.Model
         public string Name { get; set; }
        public string Source { get; set; }
         public string Destination { get; set; }
+        public bool IsPaused { get; set; }
     }
     class BackupJob : IBackupJob
     {
         public string Name { get; set; }
+        public bool IsPaused { get; set; }
         public string Source { get; set; }
         public string Destination { get; set; }
     }

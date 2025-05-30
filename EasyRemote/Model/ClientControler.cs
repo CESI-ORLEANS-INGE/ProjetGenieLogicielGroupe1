@@ -18,6 +18,7 @@ namespace EasyRemote.Model
     {
         public ObservableCollection<IBackupJob> BackupJob { get;}
         public ObservableCollection<IBackupJobState> RunningJobList { get; }
+        public Socket ConfigureServer(string ipAddress, int port);
         public void ConnectToServer(Socket socket);
         public void DisconnectToServer(Socket socket);
         public void ListenToServer(Socket client);
@@ -80,7 +81,7 @@ namespace EasyRemote.Model
         {
             BackupJob = new ObservableCollection<IBackupJob>();
         }
-        public void ConfigureServer(string ipAddress, int port)
+        public Socket ConfigureServer(string ipAddress, int port)
         {
             try
             {
@@ -88,20 +89,21 @@ namespace EasyRemote.Model
                 ServerPort = port;
                 _serverEndPoint = new IPEndPoint(IPAddress.Parse(ipAddress), port);
 
-                
                 if (IsConnected)
                 {
                     DisconnectToServer(null);
                 }
 
-                
-                _clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
                 ConnectionStatusChanged?.Invoke($"Configuré pour {ipAddress}:{port}");
+
+                return _clientSocket = socket;
             }
             catch (Exception ex)
             {
                 ConnectionStatusChanged?.Invoke($"Erreur de configuration : {ex.Message}");
+                return null;  // On renvoie null pour signaler l'échec
             }
         }
 
@@ -248,17 +250,17 @@ namespace EasyRemote.Model
                             string name = parts[0];
                             string source = parts[1];
                             string destination = parts[2];
+                            bool isPaused = bool.Parse(parts[3]);
 
                             BackupJob.Add(new BackupJob
                             {
                                 Name = name,
                                 Source = source,
-                                Destination = destination
+                                Destination = destination,
+                                IsPaused = isPaused
                             });
                         }
                     }
-
-                    JobsUpdated?.Invoke(BackupJob);
                 }
                 else if (message.StartsWith("STATE|"))
                 {

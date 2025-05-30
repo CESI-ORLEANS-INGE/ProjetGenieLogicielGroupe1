@@ -69,7 +69,7 @@
             </DataGrid.Columns>
         </DataGrid>
         <!-- Bouton RUN -->
-        <Button Content="Exécuter" Width="100" Height="30"
+        <Button Content="Executer" Width="100" Height="30"
             HorizontalAlignment="Right" Grid.Row="2" Background="White" Click="RunSelectedJobs_Click"/>
     </Grid>
 </UserControl>
