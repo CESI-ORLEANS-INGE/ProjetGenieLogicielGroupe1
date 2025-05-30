@@ -146,6 +146,10 @@ public class SocketServer {
                 Message = $"Socket error: {ex.Message}"
             });
             client.Close();
+        } catch (ObjectDisposedException) {
+            this._ViewModel.Logger.Error(new Log() {
+                Message = $"Socket closed"
+            });
         }
     }
 
