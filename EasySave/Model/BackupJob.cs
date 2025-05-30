@@ -135,9 +135,10 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
         this.StartedAt = DateTime.Now;
 
         return this.Task = Task.Run(() => {
-            ICrypto crypto = Crypto.Acquire();
+            ICrypto? crypto = null;
 
             try {
+                crypto = Crypto.Acquire();
                 for (this.CurrentTaskIndex = 0; this.CurrentTaskIndex < Tasks.Count - 1; this.CurrentTaskIndex++) {
                     if (this._IsStopped) {
                         this.BackupJobCancelled?.Invoke(this, new BackupJobCancelledEventArgs(this.Name, "Backup job was cancelled."));
@@ -163,8 +164,11 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
                         return;
                     }
                 }
+            } catch (Exception ex) {
+                this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
+                return;
             } finally {
-                crypto.Release();
+                crypto?.Release();
             }
 
             this.BackupJobFinished?.Invoke(this, new BackupJobEventArgs(this.Name));
