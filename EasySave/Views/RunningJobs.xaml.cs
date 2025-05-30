@@ -10,13 +10,11 @@ using System.Windows.Data;
 using System.Windows.Controls;
 using System.ComponentModel;
 
-namespace EasySave.Views
-{
+namespace EasySave.Views {
     /// <summary>
     /// Represents the RunningJobs view, which displays the currently running backup jobs.
     /// </summary>
-    partial class RunningJobs : INotifyPropertyChanged
-    {
+    partial class RunningJobs : INotifyPropertyChanged {
         /// <summary>
         /// ViewModel associated with this view.
         /// </summary>
@@ -30,10 +28,8 @@ namespace EasySave.Views
         public int TotalFilesLeft => _RunningJobList.Count == 0 ? 0 : (int)_RunningJobList.Sum(job => job.FilesLeft);
 
         // calculates the overall progression of all running jobs
-        public double Progression
-        {
-            get
-            {
+        public double Progression {
+            get {
                 if (_RunningJobList.Count == 0) return 0.0;
 
                 int totalFiles = TotalFilesToCopy;
@@ -53,19 +49,15 @@ namespace EasySave.Views
         /// Initializes a new instance of the <see cref="RunningJobs"/> class.
         /// </summary>
         /// <param name="viewModel"></param>
-        public RunningJobs(IViewModel viewModel)
-        {
+        public RunningJobs(IViewModel viewModel) {
             this.ViewModel = viewModel;
             InitializeComponent();
             this.MainGrid.DataContext = this;
             this.ViewModel.JobStateChanged += this.OnJobStateChanged;
 
-            this._RefreshTask = Task.Run(() =>
-            {
-                while (true)
-                {
-                    this.Dispatcher.Invoke(() =>
-                    {
+            this._RefreshTask = Task.Run(() => {
+                while (true) {
+                    this.Dispatcher.Invoke(() => {
                         this.RunningJobsList.Items.Refresh();
                         this.UpdateStats();
                     });
@@ -73,8 +65,7 @@ namespace EasySave.Views
                 }
             });
 
-            this.Dispatcher.Invoke(() =>
-            {
+            this.Dispatcher.Invoke(() => {
                 this.UpdateList();
             });
             this.UpdateStats();
@@ -84,18 +75,14 @@ namespace EasySave.Views
         /// Updates the list of running jobs based on the current backup state.
         /// </summary>
 
-        private void UpdateList()
-        {
+        private void UpdateList() {
             this._RunningJobList.Clear();
-            if (this.ViewModel.BackupState is null)
-            {
+            if (this.ViewModel.BackupState is null) {
                 return;
             }
 
-            foreach (IBackupJobState jobState in this.ViewModel.BackupState.JobState)
-            {
-                if (jobState.State == State.ACTIVE || jobState.State == State.IN_PROGRESS || jobState.State == State.PAUSED)
-                {
+            foreach (IBackupJobState jobState in this.ViewModel.BackupState.JobState) {
+                if (jobState.State == State.ACTIVE || jobState.State == State.IN_PROGRESS || jobState.State == State.PAUSED) {
                     this._RunningJobList.Add(jobState);
                 }
             }
@@ -105,8 +92,7 @@ namespace EasySave.Views
         /// Updates the statistics displayed in the view, such as the start time, total files to copy, total files left, and overall progression.
         /// </summary>
 
-        private void UpdateStats()
-        {
+        private void UpdateStats() {
             this.OnPropertyChanged(nameof(StartedAt));
             this.OnPropertyChanged(nameof(TotalFilesToCopy));
             this.OnPropertyChanged(nameof(TotalFilesLeft));
@@ -118,12 +104,9 @@ namespace EasySave.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void OnJobStateChanged(object sender, JobStateChangedEventArgs e)
-        {
-            this.Dispatcher.Invoke(() =>
-            {
-                if (e.JobState is not null)
-                {
+        private void OnJobStateChanged(object sender, JobStateChangedEventArgs e) {
+            this.Dispatcher.Invoke(() => {
+                if (e.JobState is not null) {
                     this.UpdateList();
                 }
                 this.UpdateStats();
@@ -134,10 +117,8 @@ namespace EasySave.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CancelAllButton_Click(object sender, RoutedEventArgs e)
-        {
-            foreach (IBackupJob job in ViewModel.BackupJobs)
-            {
+        private void CancelAllButton_Click(object sender, RoutedEventArgs e) {
+            foreach (IBackupJob job in ViewModel.BackupJobs) {
                 job.Stop();
             }
         }
@@ -147,9 +128,8 @@ namespace EasySave.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void RunAllButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.ViewModel.RunCommandRun([.. this.ViewModel.Configuration.Jobs.Select(j => j.Name)]);
+        private void RunAllButton_Click(object sender, RoutedEventArgs e) {
+            this.ViewModel.Commands.RunCommand("run", [.. this.ViewModel.Configuration.Jobs.Select(j => j.Name)]);
         }
 
         /// <summary>
@@ -157,10 +137,8 @@ namespace EasySave.Views
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.Button button && button.DataContext is IBackupJobState jobState)
-            {
+        private void CancelButton_Click(object sender, RoutedEventArgs e) {
+            if (sender is System.Windows.Controls.Button button && button.DataContext is IBackupJobState jobState) {
                 jobState.BackupJob.Stop();
             }
         }
@@ -174,8 +152,7 @@ namespace EasySave.Views
         /// Raises the PropertyChanged event for the specified property name.
         /// </summary>
         /// <param name="propertyName"></param>
-        protected void OnPropertyChanged(string propertyName)
-        {
+        protected void OnPropertyChanged(string propertyName) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
@@ -194,15 +171,13 @@ namespace EasySave.Views
 /// <summary>
 /// Extension methods for the IBackupJobState interface to calculate progression percentage.
 /// </summary>
-public static class BackupJobStateExtensions
-{
+public static class BackupJobStateExtensions {
     /// <summary>
     /// Calculates the progression percentage of a backup job based on the total files to copy and the files left to copy.
     /// </summary>
     /// <param name="jobState"></param>
     /// <returns></returns>
-    public static double GetProgressionPercentage(this IBackupJobState jobState)
-    {
+    public static double GetProgressionPercentage(this IBackupJobState jobState) {
         if (jobState.TotalFilesToCopy == 0) return 0.0;
 
         double completedFiles = jobState.TotalFilesToCopy - jobState.FilesLeft;

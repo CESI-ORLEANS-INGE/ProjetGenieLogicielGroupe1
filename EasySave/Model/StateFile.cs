@@ -32,6 +32,10 @@ public interface IStateFile {
     /// Saves the current list of backup job states to a file.
     /// </summary>
     public void Save(List<IBackupJobState> jobsState);
+
+    public string Read();
+
+    public string ToJSON(List<IBackupJobState> jobsState, bool indent = true);
 }
 
 public class StateFile(string filePath) : IStateFile {
@@ -40,6 +44,12 @@ public class StateFile(string filePath) : IStateFile {
     private JsonSerializerOptions _SerializerOptions { get; } = new() { WriteIndented = true };
 
     public void Save(List<IBackupJobState> jobsState) {
+        lock (this._LockObject) {
+            File.WriteAllText(this._FilePath, this.ToJSON(jobsState));
+        }
+    }
+
+    public string ToJSON(List<IBackupJobState> jobsState, bool indent = true) {
         var dtoList = new List<JobStateDto>();
 
         foreach (var jobstate in jobsState) {
@@ -55,10 +65,15 @@ public class StateFile(string filePath) : IStateFile {
             };
             dtoList.Add(dto);
         }
-        var jsonString = JsonSerializer.Serialize(dtoList, _SerializerOptions);
+        return JsonSerializer.Serialize(dtoList, indent ? _SerializerOptions : null);
+    }
 
+    public string Read() {
+        if (!File.Exists(this._FilePath)) {
+            throw new FileNotFoundException($"State file not found: {this._FilePath}");
+        }
         lock (this._LockObject) {
-            File.WriteAllText(this._FilePath, jsonString);
+            return File.ReadAllText(this._FilePath);
         }
     }
 }

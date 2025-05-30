@@ -2,6 +2,7 @@
 using EasySave.Views;
 using EasySave.Model;
 using System.Windows;
+using EasySave.Helpers;
 
 
 namespace EasySave.Views {
@@ -59,7 +60,7 @@ namespace EasySave.Views {
             }
 
             if (selectedJobs.Count == 0) return;
-            this.ViewModel.RunCommandRun([.. selectedJobs.Select(j => j.Name)]);
+            this.ViewModel.Commands.RunCommand("run", [..selectedJobs.Select(job => job.Name)]);
         }
     }
 }

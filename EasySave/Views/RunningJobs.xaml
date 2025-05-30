@@ -21,7 +21,7 @@
     </Control.Resources>
 
     <!-- CONTENU PRINCIPAL -->
-    <Grid Margin="10" x:Name="MainGrid">
+    <Grid Margin="10" x:Name="MainGrid"> <!-- CLASS : RunningJobs -->
         <Grid.RowDefinitions>
             <!-- Jobs List -->
             <RowDefinition Height="*"/>
@@ -30,8 +30,8 @@
         </Grid.RowDefinitions>
 
         <ScrollViewer Grid.Row="0" Padding="0,0,10,0" Margin="0,0,0,10" VerticalScrollBarVisibility="Visible">
-            <ItemsControl x:Name="RunningJobsList" ItemsSource="{Binding RunningJobList}">
-                <ItemsControl.ItemTemplate>
+            <ItemsControl x:Name="RunningJobsList" ItemsSource="{Binding RunningJobList}"> <!-- ObservableCollection : RunningJobList -->
+                <ItemsControl.ItemTemplate> <!-- IBackupState -->
                     <DataTemplate>
                         <GroupBox Header="{Binding BackupJob.Name}">
                             <Grid>
