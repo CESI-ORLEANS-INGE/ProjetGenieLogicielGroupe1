@@ -150,54 +150,202 @@ public class ViewModel : IViewModel {
         this.Crypto = new Crypto(this.Configuration.CryptoFile, this.Configuration.CryptoKey);
     }
 
-    public async void RunCommandRun(List<string> indexOrNameList) {
+    public async void RunCommandRun(List<string> indexOrNameList)
+    {
         const int MAX_CONCURRENT_JOBS = 1;
+        // Extensions prioritaires (initialement docx pour les tests)
+        string[] value = { ".docx" };
+        string[] PRIORITY_EXTENSIONS = value;
+
 
         List<IBackupJobConfiguration> jobsToRun = [];
-
-        foreach (string indexOrName in indexOrNameList) {
+        foreach (string indexOrName in indexOrNameList)
+        {
             // Check if the indexOrName is a number
-            if (int.TryParse(indexOrName, out int id)) {
+            if (int.TryParse(indexOrName, out int id))
+            {
                 id = id - 1; // Adjust for 0-based index
-                if (id < 0 || id >= this.Configuration.Jobs.Count) {
+                if (id < 0 || id >= this.Configuration.Jobs.Count)
+                {
                     throw new Exception($"No backup job found with index: {indexOrName}");
-                } else {
+                }
+                else
+                {
                     jobsToRun.Add(this.Configuration.Jobs[id]);
                 }
-            } else {
+            }
+            else
+            {
                 IBackupJobConfiguration? job = this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(indexOrName, StringComparison.OrdinalIgnoreCase));
-                if (job is null) {
+                if (job is null)
+                {
                     throw new Exception($"No backup job found with name: {indexOrName}");
-                } else {
+                }
+                else
+                {
                     jobsToRun.Add(job);
                 }
             }
         }
 
         // Check if there are any jobs to run
-        if (jobsToRun.Count == 0) {
+        if (jobsToRun.Count == 0)
+        {
             throw new Exception("No backup jobs available.");
         }
 
         this.BackupJobs = BackupJobFactory.Create(jobsToRun);
 
+        // Organiser les jobs par priorité
+        var organizedJobs = OrganizeJobsByPriority(this.BackupJobs, PRIORITY_EXTENSIONS);
+        this.BackupJobs = organizedJobs; // Réassigner la liste organisée
+
         IStateFile file = new StateFile(this.Configuration.StateFile);
         using (this.BackupState = new BackupState(file))
+        {
             this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
-        SemaphoreSlim semaphore = new(MAX_CONCURRENT_JOBS);
-        await Task.WhenAll([.. this.BackupJobs.Select(job => Task.Run(async () => {
+            // Séparer les jobs prioritaires et normaux
+            var priorityJobs = GetPriorityJobs(this.BackupJobs, PRIORITY_EXTENSIONS);
+            var normalJobs = GetNormalJobs(this.BackupJobs, PRIORITY_EXTENSIONS);
+
+            // Sémaphores pour contrôler la concurrence
+            SemaphoreSlim prioritySemaphore = new(MAX_CONCURRENT_JOBS);
+            SemaphoreSlim normalSemaphore = new(MAX_CONCURRENT_JOBS);
+
+            // Variable pour contrôler la pause des tâches normales
+            bool pauseNormalJobs = false;
+
+            // Exécuter d'abord les tâches prioritaires
+            if (priorityJobs.Count > 0)
+            {
+                pauseNormalJobs = true;
+                await ExecutePriorityJobs(priorityJobs, prioritySemaphore);
+                pauseNormalJobs = false;
+            }
+
+            // Ensuite exécuter les tâches normales
+            if (normalJobs.Count > 0)
+            {
+                await ExecuteNormalJobs(normalJobs, normalSemaphore, () => pauseNormalJobs);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Organise les jobs par priorité en fonction des extensions de fichiers
+    /// </summary>
+    private List<IBackupJob> OrganizeJobsByPriority(List<IBackupJob> jobs, string[] priorityExtensions)
+    {
+        var priorityJobs = new List<IBackupJob>();
+        var normalJobs = new List<IBackupJob>();
+
+        foreach (var job in jobs)
+        {
+            if (JobHasPriorityFiles(job, priorityExtensions))
+            {
+                priorityJobs.Add(job);
+            }
+            else
+            {
+                normalJobs.Add(job);
+            }
+        }
+
+        // Retourner la liste avec les prioritaires en premier
+        var organizedJobs = new List<IBackupJob>();
+        organizedJobs.AddRange(priorityJobs);
+        organizedJobs.AddRange(normalJobs);
+
+        return organizedJobs;
+    }
+
+    /// <summary>
+    /// Vérifie si un job contient des fichiers avec des extensions prioritaires
+    /// </summary>
+    private bool JobHasPriorityFiles(IBackupJob job, string[] priorityExtensions)
+    {
+        try
+        {
+            // Récupérer tous les fichiers du job  
+            var entries = job.Source.GetEntries(); // Utilisation de GetEntries() à la place de GetFiles()  
+                                                   // Vérifier si au moins un fichier a une extension prioritaire  
+            return entries.OfType<IFileHandler>().Any(file => priorityExtensions.Contains(System.IO.Path.GetExtension(file.GetPath()).ToLowerInvariant()));
+        }
+        catch
+        {
+            // En cas d'erreur, considérer comme non prioritaire  
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Récupère les jobs prioritaires
+    /// </summary>
+    private List<IBackupJob> GetPriorityJobs(List<IBackupJob> jobs, string[] priorityExtensions)
+    {
+        return jobs.Where(job => JobHasPriorityFiles(job, priorityExtensions)).ToList();
+    }
+
+    /// <summary>
+    /// Récupère les jobs normaux
+    /// </summary>
+    private List<IBackupJob> GetNormalJobs(List<IBackupJob> jobs, string[] priorityExtensions)
+    {
+        return jobs.Where(job => !JobHasPriorityFiles(job, priorityExtensions)).ToList();
+    }
+
+    /// <summary>
+    /// Exécute les tâches prioritaires
+    /// </summary>
+    private async Task ExecutePriorityJobs(List<IBackupJob> priorityJobs, SemaphoreSlim semaphore)
+    {
+        await Task.WhenAll(priorityJobs.Select(job => Task.Run(async () => {
             await semaphore.WaitAsync();
-            try {
+            try
+            {
                 job.Analyze();
                 this.BackupState.CreateJobState(job);
                 Task task = job.Run();
                 if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) job.Pause();
                 await task;
-            } finally {
+            }
+            finally
+            {
                 semaphore.Release();
             }
-        }))]);
+        })));
+    }
+
+    /// <summary>
+    /// Exécute les tâches normales avec possibilité de pause
+    /// </summary>
+    private async Task ExecuteNormalJobs(List<IBackupJob> normalJobs, SemaphoreSlim semaphore, Func<bool> shouldPause)
+    {
+        await Task.WhenAll(normalJobs.Select(job => Task.Run(async () => {
+            await semaphore.WaitAsync();
+            try
+            {
+                // Vérifier si on doit mettre en pause avant de commencer
+                while (shouldPause())
+                {
+                    await Task.Delay(100); // Attendre 100ms avant de revérifier
+                }
+
+                job.Analyze();
+                this.BackupState.CreateJobState(job);
+                Task task = job.Run();
+
+                // Vérification habituelle des processus
+                if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) job.Pause();
+
+                await task;
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        })));
     }
     public void RunCommandAdd(string name, string source, string destination, string type) {
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
