@@ -7,16 +7,14 @@ namespace CryptoSoft;
 /// File manager class
 /// This class is used to encrypt and decrypt files
 /// </summary>
-public class FileManager(string path, string key)
-{
+public class FileManager(string path, string key) {
     private string FilePath { get; } = path;
     private string Key { get; } = key;
 
     /// <summary>
     /// check if the file exists
     /// </summary>
-    private bool CheckFile()
-    {
+    private bool CheckFile() {
         if (File.Exists(FilePath))
             return true;
 
@@ -28,8 +26,7 @@ public class FileManager(string path, string key)
     /// <summary>
     /// Encrypts the file with xor encryption
     /// </summary>
-    public int TransformFile()
-    {
+    public double TransformFile() {
         if (!CheckFile()) return -1;
         Stopwatch stopwatch = Stopwatch.StartNew();
         var fileBytes = File.ReadAllBytes(FilePath);
@@ -37,7 +34,7 @@ public class FileManager(string path, string key)
         fileBytes = XorMethod(fileBytes, keyBytes);
         File.WriteAllBytes(FilePath, fileBytes);
         stopwatch.Stop();
-        return (int)stopwatch.ElapsedMilliseconds;
+        return stopwatch.ElapsedMilliseconds;
     }
 
     /// <summary>
@@ -45,8 +42,7 @@ public class FileManager(string path, string key)
     /// </summary>
     /// <param name="text"></param>
     /// <returns></returns>
-    private static byte[] ConvertToByte(string text)
-    {
+    private static byte[] ConvertToByte(string text) {
         return Encoding.UTF8.GetBytes(text);
     }
 
@@ -55,11 +51,9 @@ public class FileManager(string path, string key)
     /// <param name="fileBytes">Bytes of the file to convert</param>
     /// <param name="keyBytes">Key to use</param>
     /// <returns>Bytes of the encrypted file</returns>
-    private static byte[] XorMethod(IReadOnlyList<byte> fileBytes, IReadOnlyList<byte> keyBytes)
-    {
+    private static byte[] XorMethod(IReadOnlyList<byte> fileBytes, IReadOnlyList<byte> keyBytes) {
         var result = new byte[fileBytes.Count];
-        for (var i = 0; i < fileBytes.Count; i++)
-        {
+        for (var i = 0; i < fileBytes.Count; i++) {
             result[i] = (byte)(fileBytes[i] ^ keyBytes[i % keyBytes.Count]);
         }
 

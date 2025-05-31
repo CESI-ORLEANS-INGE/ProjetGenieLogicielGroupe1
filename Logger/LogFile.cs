@@ -5,21 +5,25 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Xml.Linq;
 
-namespace EasySave.Logger {
-    // Interface defining methods for managing log files
-    public interface ILogFile {
-        // Method to save a log entry to a file
-        public void Save(Log log, string filepath);
+namespace EasySave.Logger;
 
-        // Method to read logs from a file
-        public List<Log> Read(string filepath);
-    }
+// Interface defining methods for managing log files
+public interface ILogFile {
+    // Method to save a log entry to a file
+    public void Save(Log log, string filepath);
 
-    // Implementation of the ILogFile interface
-    public class LogFileXML : ILogFile {
-        // Saves a Log object to a XML file
-        public void Save(Log log, string filePath) {
-            // Create a JSON object from the log properties
+    // Method to read logs from a file
+    public List<Log> Read(string filepath);
+}
+
+// Implementation of the ILogFile interface
+public class LogFileXML : ILogFile {
+    private readonly object _LockObject = new(); // Lock object for thread safety
+
+    // Saves a Log object to a XML file
+    public void Save(Log log, string filePath) {
+        lock (_LockObject) { // Ensure thread safety when writing to the file
+                             // Create a JSON object from the log properties
             XElement newLog = new("log",
                 new XElement("DateTime", log.Datetime),
                 new XElement("Name", log.JobName),
@@ -38,11 +42,13 @@ namespace EasySave.Logger {
             StreamWriter file = File.AppendText(filePath); // Open the file for appending
             file.WriteLine(xmlString); // Write the XML string to the file
         }
-        // Reads the content of a JSON file and returns a list of Log objects
+    }
+    // Reads the content of a JSON file and returns a list of Log objects
 
 
-        public List<Log> Read(string filePath) {
-            // Vérifie si le fichier existe
+    public List<Log> Read(string filePath) {
+        lock (_LockObject) { // Ensure thread safety when reading the file
+                             // Vérifie si le fichier existe
             if (!File.Exists(filePath)) {
                 throw new FileNotFoundException("XML file not found.");
             }
@@ -57,7 +63,7 @@ namespace EasySave.Logger {
 
                 List<Log> logs = [];
 
-                foreach (string line in xmlContent.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries)) {
+                foreach (string line in xmlContent.Split([Environment.NewLine], StringSplitOptions.RemoveEmptyEntries)) {
                     // Parse each line as a JSON object
                     XElement? xmlNode = XElement.Parse(line);
                     if (xmlNode != null) {
@@ -81,11 +87,15 @@ namespace EasySave.Logger {
                 throw new Exception(filePath + " : " + ex.Message);
             }
         }
-
     }
-    public class LogFileJSON : ILogFile { // Saves a Log object to a JSON file
-        public void Save(Log log, string filePath) {
+}
 
+public class LogFileJSON : ILogFile { // Saves a Log object to a JSON file
+
+    private readonly object _LockObject = new(); // Lock object for thread safety
+
+    public void Save(Log log, string filePath) {
+        lock (_LockObject) { // Ensure thread safety when writing to the file
             // Create a JSON object from the log properties
             var jsonObject = new JsonObject {
                 ["DateTime"] = log.Datetime,
@@ -101,20 +111,25 @@ namespace EasySave.Logger {
 
             // Convert the JSON object to a string
             string jsonString = jsonObject.ToJsonString();
-
-            using StreamWriter file = File.AppendText(filePath); // Open the file for appending
-            file.WriteLine(jsonString); // Write the JSON string to the file
+            try {
+                using StreamWriter file = File.AppendText(filePath); // Open the file for appending
+                file.WriteLine(jsonString); // Write the JSON string to the file
+            } catch (IOException) {
+                // Oh No!
+                // Anyway
+            }
         }
+    }
 
-        // Reads the content of a JSON file and returns a list of Log objects
-        public List<Log> Read(string filePath) {
-            // Check if the file exists
+    // Reads the content of a JSON file and returns a list of Log objects
+    public List<Log> Read(string filePath) {
+        // Check if the file exists
+        lock (_LockObject) {
             if (!File.Exists(filePath)) {
                 throw new FileNotFoundException("JSON file not found.");
             }
 
             try {
-                // Read the entire file content
                 string jsonContent = File.ReadAllText(filePath);
 
                 // Return an empty list if the file is empty or contains only whitespace
@@ -151,3 +166,4 @@ namespace EasySave.Logger {
         }
     }
 }
+
