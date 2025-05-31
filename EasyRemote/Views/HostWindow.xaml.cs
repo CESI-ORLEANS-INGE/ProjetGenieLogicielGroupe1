@@ -21,7 +21,7 @@ namespace EasyRemote.Views
             DataContext = this;
         }
         public event PropertyChangedEventHandler PropertyChanged;
-
+        
         public IViewModel ViewModel { get; private set; }
 
         private string _hostPort;
@@ -62,11 +62,19 @@ namespace EasyRemote.Views
 
             Socket clientSocket = ViewModel.ClientControler.ConfigureServer(ip, port);
             ViewModel.ClientControler.ConnectToServer(clientSocket);
+            var mainWindow = new MainWindow(ViewModel);
+            mainWindow.Show();
+            ViewModel.ClientControler.ListProcess();
+            ViewModel.ClientControler.RunningProcess();
+
+
+            this.Close();
         }
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
             ViewModel.ClientControler.DisconnectToServer(null);
             this.Close();
         }
+
     }
 }
