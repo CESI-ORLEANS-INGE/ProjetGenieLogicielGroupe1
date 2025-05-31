@@ -83,10 +83,10 @@ public interface IViewModel : INotifyPropertyChanged {
 }
 
 public class ViewModel : IViewModel {
-    private const long MAX_TOTAL_TRANSFER_SIZE_KB = 1024000;
-    private static long _totalTransferSizeKB = 0;
-    private static readonly object _transferLock = new object();
     public const string CONFIGURATION_PATH = "./configuration.json";
+    private const int MAX_CONCURRENT_JOBS = 1;
+    private static readonly string[] PRIORITY_EXTENSIONS = { ".docx" };
+    private const int PAUSE_CHECK_DELAY_MS = 100;
 
     public List<IBackupJob> BackupJobs { get; set; } = [];
     public IBackupState? BackupState { get; set; }
@@ -207,11 +207,7 @@ public class ViewModel : IViewModel {
     }
 
     private async void RunCommandRun(List<string> indexOrNameList) {
-        // Utilisation de SemaphoreSlim au lieu de Mutex pour async/await
-        using SemaphoreSlim mutex = new(1, 1);
-
         List<IBackupJobConfiguration> jobsToRun = [];
-
         foreach (string indexOrName in indexOrNameList) {
             // Check if the indexOrName is a number
             if (int.TryParse(indexOrName, out int id)) {
@@ -236,28 +232,366 @@ public class ViewModel : IViewModel {
             throw new Exception("No backup jobs available.");
         }
 
+        // Créer tous les BackupJobs à partir des configurations
         this.BackupJobs = BackupJobFactory.Create(jobsToRun);
 
         IStateFile file = new StateFile(this.Configuration.StateFile);
         using (this.BackupState = new BackupState(file)) {
-
             this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
-            SemaphoreSlim semaphore = new(this.Configuration.MaxConcurrentJobs);
-            await Task.WhenAll([.. this.BackupJobs.Select(job => Task.Run(async () => {
-                await semaphore.WaitAsync();
+            // Séparer les jobs prioritaires et normaux APRÈS la création des BackupJobs
+            var priorityJobs = GetPriorityJobs(this.BackupJobs, PRIORITY_EXTENSIONS);
+            var normalJobs = GetNormalJobs(this.BackupJobs, PRIORITY_EXTENSIONS);
+
+            // Debug: Log pour vérifier la séparation
+            Logger?.Info(new Log {
+                Message = $"Jobs prioritaires trouvés: {priorityJobs.Count}, Jobs normaux: {normalJobs.Count}"
+            });
+
+            // Debug: Vérifier l'état de chaque job prioritaire
+            foreach (var job in priorityJobs) {
+                Logger?.Info(new Log {
+                    JobName = job.Name,
+                    Message = $"Job prioritaire détecté: '{job.Name}', Source: '{job.Source?.GetPath() ?? "N/A"}'"
+                });
+
+                // Vérifier si le job peut être analysé
                 try {
-                    job.Analyze();
-                    this.BackupState.CreateJobState(job);
-                    Task task = job.Run();
-                    if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) job.Pause();
-                    await task;
-                } finally {
-                    semaphore.Release();
+                    var entries = job.Source?.GetEntries();
+                    Logger?.Info(new Log {
+                        JobName = job.Name,
+                        Message = $"Job '{job.Name}' contient {entries?.Count() ?? 0} entrées"
+                    });
+                } catch (Exception ex) {
+                    Logger?.Error(new Log {
+                        JobName = job.Name,
+                        Message = $"Erreur lors de la vérification du job '{job.Name}': {ex.Message}"
+                    });
                 }
-            }))]);
+            }
+
+            // Debug: Vérifier l'état du BackupState
+            if (this.BackupState == null) {
+                Logger?.Error(new Log {
+                    Message = "ERREUR: BackupState est null!"
+                });
+            } else {
+                Logger?.Info(new Log {
+                    Message = "BackupState initialisé correctement"
+                });
+            }
+
+            // Sémaphores pour contrôler la concurrence
+            using SemaphoreSlim prioritySemaphore = new(MAX_CONCURRENT_JOBS);
+            using SemaphoreSlim normalSemaphore = new(MAX_CONCURRENT_JOBS);
+
+            try {
+                // Exécuter d'abord les tâches prioritaires
+                if (priorityJobs.Count > 0) {
+                    Logger?.Info(new Log {
+                        Message = "Démarrage des jobs prioritaires..."
+                    });
+                    await ExecutePriorityJobs(priorityJobs, prioritySemaphore);
+                    Logger?.Info(new Log {
+                        Message = "Jobs prioritaires terminés."
+                    });
+                }
+
+                // Ensuite exécuter les tâches normales
+                if (normalJobs.Count > 0) {
+                    Logger?.Info(new Log {
+                        Message = "Démarrage des jobs normaux..."
+                    });
+                    await ExecuteNormalJobs(normalJobs, normalSemaphore, () => false); // Plus de pause nécessaire
+                    Logger?.Info(new Log {
+                        Message = "Jobs normaux terminés."
+                    });
+                }
+            } catch (Exception ex) {
+                Logger?.Error(new Log {
+                    Message = $"Erreur lors de l'exécution des jobs: {ex.Message}"
+                });
+                throw;
+            }
         }
     }
+
+    /// <summary>
+    /// Vérifie l'état et la validité d'un job avant exécution
+    /// </summary>
+    private bool VerifyJobReadiness(IBackupJob job) {
+        try {
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Vérification de la validité du job '{job.Name}'"
+            });
+
+            // Vérifier si la source existe et est accessible
+            if (job.Source == null) {
+                Logger?.Error(new Log {
+                    JobName = job.Name,
+                    Message = $"Source du job '{job.Name}' est null"
+                });
+                return false;
+            }
+
+            // Vérifier si la destination est définie
+            if (job.Destination == null) {
+                Logger?.Error(new Log {
+                    JobName = job.Name,
+                    Message = $"Destination du job '{job.Name}' est null"
+                });
+                return false;
+            }
+
+            // Essayer d'accéder aux entrées de la source
+            var entries = job.Source.GetEntries();
+            if (entries == null) {
+                Logger?.Error(new Log {
+                    JobName = job.Name,
+                    Message = $"Impossible de récupérer les entrées du job '{job.Name}'"
+                });
+                return false;
+            }
+
+            int entryCount = entries.Count();
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Job '{job.Name}' validé: {entryCount} entrées trouvées"
+            });
+
+            return true;
+        } catch (Exception ex) {
+            Logger?.Error(new Log {
+                JobName = job?.Name ?? "Unknown",
+                Message = $"Erreur lors de la vérification du job: {ex.Message}"
+            });
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Exécute un seul job prioritaire
+    /// </summary>
+    private async Task ExecuteSinglePriorityJob(IBackupJob job, SemaphoreSlim semaphore) {
+        Logger?.Info(new Log {
+            JobName = job.Name,
+            Message = $"Début d'exécution du job prioritaire '{job.Name}'"
+        });
+
+        // Vérifier la validité du job avant de prendre le sémaphore
+        if (!VerifyJobReadiness(job)) {
+            Logger?.Error(new Log {
+                JobName = job.Name,
+                Message = $"Job '{job.Name}' n'est pas prêt pour l'exécution"
+            });
+            return;
+        }
+
+        await semaphore.WaitAsync();
+        Logger?.Info(new Log {
+            JobName = job.Name,
+            Message = $"Sémaphore acquis pour '{job.Name}'"
+        });
+
+        try {
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Analyse du job '{job.Name}'"
+            });
+
+            job.Analyze();
+
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Création de l'état du job '{job.Name}'"
+            });
+
+            this.BackupState.CreateJobState(job);
+
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Lancement de l'exécution du job '{job.Name}'"
+            });
+
+            // Vérifier si des processus bloquants sont en cours avant de démarrer
+            if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) {
+                Logger?.Info(new Log {
+                    JobName = job.Name,
+                    Message = $"Processus détectés, pause du job '{job.Name}'"
+                });
+                job.Pause();
+            }
+
+            Task jobTask = job.Run();
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Attente de la fin du job '{job.Name}'"
+            });
+
+            await jobTask;
+
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Job '{job.Name}' terminé avec succès"
+            });
+        } catch (Exception ex) {
+            Logger?.Error(new Log {
+                JobName = job.Name,
+                Message = $"Erreur dans le job '{job.Name}': {ex.Message}\nStackTrace: {ex.StackTrace}"
+            });
+            throw;
+        } finally {
+            semaphore.Release();
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Sémaphore libéré pour '{job.Name}'"
+            });
+        }
+    }
+
+    /// <summary>
+    /// Organise les jobs par priorité en fonction des extensions de fichiers
+    /// </summary>
+    private List<IBackupJob> OrganizeJobsByPriority(List<IBackupJob> jobs, string[] priorityExtensions) {
+        var priorityJobs = new List<IBackupJob>();
+        var normalJobs = new List<IBackupJob>();
+
+        foreach (var job in jobs) {
+            if (JobHasPriorityFiles(job, priorityExtensions)) {
+                priorityJobs.Add(job);
+            } else {
+                normalJobs.Add(job);
+            }
+        }
+
+        // Retourner la liste avec les prioritaires en premier
+        var organizedJobs = new List<IBackupJob>();
+        organizedJobs.AddRange(priorityJobs);
+        organizedJobs.AddRange(normalJobs);
+
+        return organizedJobs;
+    }
+
+    /// <summary>
+    /// Vérifie si un job contient des fichiers avec des extensions prioritaires
+    /// </summary>
+    private bool JobHasPriorityFiles(IBackupJob job, string[] priorityExtensions) {
+        try {
+            // Récupérer tous les fichiers du job  
+            var entries = job.Source.GetEntries();
+
+            // Debug: Log des informations sur le job
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Vérification des priorités pour le job '{job.Name}', {entries.Count()} entrées trouvées"
+            });
+
+            // Vérifier si au moins un fichier a une extension prioritaire
+            var fileHandlers = entries.OfType<IFileHandler>().ToList();
+
+            foreach (var file in fileHandlers) {
+                string extension = System.IO.Path.GetExtension(file.GetPath()).ToLowerInvariant();
+                bool isPriority = priorityExtensions.Contains(extension);
+
+                // Debug: Log pour chaque fichier vérifié
+                Logger?.Info(new Log {
+                    JobName = job.Name,
+                    Message = $"Fichier: {file.GetPath()}, Extension: {extension}, Prioritaire: {isPriority}"
+                });
+
+                if (isPriority) {
+                    Logger?.Info(new Log {
+                        JobName = job.Name,
+                        Message = $"Job '{job.Name}' marqué comme prioritaire (extension {extension} trouvée)"
+                    });
+                    return true;
+                }
+            }
+
+            Logger?.Info(new Log {
+                JobName = job.Name,
+                Message = $"Job '{job.Name}' marqué comme normal (aucune extension prioritaire trouvée)"
+            });
+
+            return false;
+        } catch (Exception ex) {
+            // En cas d'erreur, considérer comme non prioritaire et logger l'erreur
+            Logger?.Error(new Log {
+                JobName = job?.Name ?? "Unknown",
+                Message = $"Erreur lors de la vérification des priorités: {ex.Message}"
+            });
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Récupère les jobs prioritaires
+    /// </summary>
+    private List<IBackupJob> GetPriorityJobs(List<IBackupJob> jobs, string[] priorityExtensions) {
+        return jobs.Where(job => JobHasPriorityFiles(job, priorityExtensions)).ToList();
+    }
+
+    /// <summary>
+    /// Récupère les jobs normaux
+    /// </summary>
+    private List<IBackupJob> GetNormalJobs(List<IBackupJob> jobs, string[] priorityExtensions) {
+        return jobs.Where(job => !JobHasPriorityFiles(job, priorityExtensions)).ToList();
+    }
+
+    /// <summary>
+    /// Exécute les tâches prioritaires
+    /// </summary>
+    private async Task ExecutePriorityJobs(List<IBackupJob> priorityJobs, SemaphoreSlim semaphore) {
+        Logger?.Info(new Log {
+            Message = $"ExecutePriorityJobs: Début d'exécution de {priorityJobs.Count} jobs prioritaires"
+        });
+
+        var tasks = priorityJobs.Select(job => ExecuteSinglePriorityJob(job, semaphore)).ToArray();
+
+        Logger?.Info(new Log {
+            Message = $"ExecutePriorityJobs: {tasks.Length} tâches créées, attente de leur completion..."
+        });
+
+        try {
+            await Task.WhenAll(tasks);
+            Logger?.Info(new Log {
+                Message = "ExecutePriorityJobs: Toutes les tâches prioritaires sont terminées"
+            });
+        } catch (Exception ex) {
+            Logger?.Error(new Log {
+                Message = $"ExecutePriorityJobs: Erreur lors de l'exécution: {ex.Message}"
+            });
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// Exécute les tâches normales avec possibilité de pause
+    /// </summary>
+    private async Task ExecuteNormalJobs(List<IBackupJob> normalJobs, SemaphoreSlim semaphore, Func<bool> shouldPause) {
+        await Task.WhenAll(normalJobs.Select(job => Task.Run(async () => {
+            await semaphore.WaitAsync();
+            try {
+                // Vérifier si on doit mettre en pause avant de commencer
+                while (shouldPause()) {
+                    await Task.Delay(PAUSE_CHECK_DELAY_MS); // Attendre avant de revérifier
+                }
+
+                job.Analyze();
+                this.BackupState.CreateJobState(job);
+                Task task = job.Run();
+
+                // Vérification habituelle des processus
+                if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) job.Pause();
+
+                await task;
+            } finally {
+                semaphore.Release();
+            }
+        })));
+    }
+
     private void RunCommandAdd(string name, string source, string destination, string type) {
         if (this.Configuration.Jobs.FirstOrDefault(job => job.Name.Equals(name, StringComparison.OrdinalIgnoreCase)) is not null) {
             throw new Exception($"A backup job with the name '{name}' already exists.");
@@ -282,6 +616,7 @@ public class ViewModel : IViewModel {
         // Add the new job to the configuration
         this.Configuration.AddJob(newJob);
     }
+
     private void RunCommandRemove(string indexOrName) {
         if (this.Configuration.Jobs.Count == 0) {
             throw new Exception("No backup jobs available.");
@@ -308,9 +643,11 @@ public class ViewModel : IViewModel {
         // Remove the backup job from the configuration
         this.Configuration.RemoveJob(jobToRemove);
     }
+
     private void RunCommandLanguage(string language) {
         this.Language.SetLanguage(language);
     }
+
     private void RunCommandLog(string logFilePath) {
         Configuration.LogFile = logFilePath;
         Logger.SetLogFile(logFilePath);
