@@ -14,10 +14,10 @@ public class ConfigurationDTO {
     public string LogFile { get; set; } = IConfiguration.DEFAULT_LOG_FILE;
     public string CryptoFile { get; set; } = IConfiguration.DEFAULT_CRYPTO_FILE;
     public string CryptoKey { get; set; } = IConfiguration.DEFAULT_CRYPTO_KEY;
-    public List<string> CryptoExtentions { get; set; } = [];
+    public List<string> CryptoExtensions { get; set; } = [];
     public List<string> Processes { get; set; } = [];
     public List<BackupJobConfigurationDTO> Jobs { get; set; } = [];
-    public List<string> PriorityExtentions { get; set; } = [];
+    public List<string> PriorityExtensions { get; set; } = [];
     public int MaxConcurrentJobs { get; set; } = IConfiguration.DEFAULT_MAX_CONCURRENT_JOBS;
     public int MaxConcurrentSize { get; set; } = IConfiguration.DEFAULT_MAX_CONCURRENT_SIZE;
 }

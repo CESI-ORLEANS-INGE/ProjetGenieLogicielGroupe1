@@ -10,53 +10,43 @@ using System.Net.Sockets;
 
 
 
-namespace EasyRemote.Views
-{
+namespace EasyRemote.Views {
 
-    public partial class HostWindow : Window, INotifyPropertyChanged
-    {
-        public HostWindow(IViewModel viewModel)
-        {
+    public partial class HostWindow : Window, INotifyPropertyChanged {
+        public HostWindow(IViewModel viewModel) {
             InitializeComponent();
             this.ViewModel = viewModel;
             DataContext = this;
         }
         public event PropertyChangedEventHandler PropertyChanged;
-        
+
         public IViewModel ViewModel { get; private set; }
 
-        private string _hostPort;
-        public string HostPort
-        {
+        private string _hostPort = "127.0.0.1:8080";
+        public string HostPort {
             get => _hostPort;
-            set
-            {
-                if (_hostPort != value)
-                {
+            set {
+                if (_hostPort != value) {
                     _hostPort = value;
                     OnPropertyChanged(nameof(HostPort));
                 }
             }
         }
 
-        protected void OnPropertyChanged(string propertyName)
-        {
+        protected void OnPropertyChanged(string propertyName) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        
-        private void ContinueButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(HostPort) || !HostPort.Contains(":"))
-            {
+
+        private void ContinueButton_Click(object sender, RoutedEventArgs e) {
+            if (string.IsNullOrWhiteSpace(HostPort) || !HostPort.Contains(":")) {
                 MessageBox.Show("Veuillez entrer une adresse IP et un port au format IP:Port.");
                 return;
             }
 
             var parts = HostPort.Split(':');
             string ip = parts[0];
-            if (!int.TryParse(parts[1], out int port))
-            {
+            if (!int.TryParse(parts[1], out int port)) {
                 MessageBox.Show("Le port doit être un nombre entier.");
                 return;
             }
@@ -71,8 +61,7 @@ namespace EasyRemote.Views
 
             this.Close();
         }
-        private void ExitButton_Click(object sender, RoutedEventArgs e)
-        {
+        private void ExitButton_Click(object sender, RoutedEventArgs e) {
             ViewModel.ClientControler.DisconnectToServer(null);
             this.Close();
         }

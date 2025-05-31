@@ -61,11 +61,6 @@
                         <TextBlock Text="Type" />
                     </DataGridTextColumn.Header>
                 </DataGridTextColumn>
-                <DataGridTemplateColumn Width="80" IsReadOnly="True">
-                    <DataGridTemplateColumn.Header>
-                        <TextBlock Text="Actions" />
-                    </DataGridTemplateColumn.Header>
-                </DataGridTemplateColumn>
             </DataGrid.Columns>
         </DataGrid>
         <!-- Bouton RUN -->
