@@ -54,7 +54,7 @@ public class StateFile(string filePath) : IStateFile {
 
         foreach (var jobstate in jobsState) {
             var dto = new JobStateDto {
-                Name = jobstate.BackupJob.Name,
+                Name = jobstate.BackupJob?.Name ?? string.Empty,
                 SourceFilePath = jobstate.SourceFilePath,
                 TargetFilePath = jobstate.DestinationFilePath,
                 TotalFilesToCopy = jobstate.TotalFilesToCopy,

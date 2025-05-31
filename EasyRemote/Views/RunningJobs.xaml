@@ -5,6 +5,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:views="clr-namespace:EasyRemote.Views"
     xmlns:easyremote="clr-namespace:EasyRemote"
+    xmlns:model="clr-namespace:EasyRemote.Model"
     mc:Ignorable="av" 
     x:Class="EasyRemote.Views.RunningJobs"
     Height="Auto" 
@@ -12,10 +13,8 @@
     av:DesignHeight="496.81" 
     av:DesignWidth="684"
 >
-  
-
     <!-- CONTENU PRINCIPAL -->
-    <Grid Margin="10" x:Name="MainGrid">
+    <Grid Margin="10" x:Name="MainGrid" av:DataContext="{av:DesignInstance Type=model:ClientController}">
         <Grid.RowDefinitions>
             <!-- Jobs List -->
             <RowDefinition Height="*"/>
@@ -27,7 +26,7 @@
             <ItemsControl x:Name="RunningJobsList" ItemsSource="{Binding RunningJobList}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <GroupBox Header="{Binding ViewModel.ClientControler.BackupJob.Name}">
+                        <GroupBox Header="{Binding Name}">
                             <Grid>
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
@@ -48,9 +47,9 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Label Content="{Binding ViewModel.ClientControler.BackupJob.Source}" Grid.Column="0"/>
+                                        <Label Content="{Binding BackupJob.Source}" Grid.Column="0"/>
                                         <Image Source="pack://application:,,,/Resources/Images/arrow-right.png" Grid.Column="1" Width="24" Height="24"/>
-                                        <Label Content="{Binding ViewModel.ClientControler.BackupJob.Destination}" Grid.Column="2"/>
+                                        <Label Content="{Binding BackupJob.Destination}" Grid.Column="2"/>
                                     </Grid>
 
                                     <Grid Grid.Row="1">
@@ -60,22 +59,9 @@
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
 
-                                        <Label Content="{Binding ViewModel.ClientControler.BackupJob.CurrentTask.Source}" Grid.Column="0"/>
-                                        <Image 
-                                        Grid.Column="1" Width="24" Height="24"
-                                    >
-                                            <Image.Style>
-                                                <Style TargetType="Image">
-                                                    <Setter Property="Source" Value="pack://application:,,,/Resources/Images/arrow-right.png"/>
-                                                    <Style.Triggers>
-                                                        <DataTrigger Binding="{Binding BackupJob.CurrentTask.IsRemoveTask}" Value="True">
-                                                            <Setter Property="Source" Value="pack://application:,,,/Resources/Images/trash.png"/>
-                                                        </DataTrigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Image.Style>
-                                        </Image>
-                                        <Label Content="{Binding ViewModel.ClientControler.BackupJob.CurrentTask.Destination}" Grid.Column="2"/>
+                                        <Label Content="{Binding SourceFilePath}" Grid.Column="0"/>
+                                        <Image Grid.Column="1" Width="24" Height="24" Source="pack://application:,,,/Resources/Images/arrow-right.png"/>
+                                        <Label Content="{Binding DestinationFilePath}" Grid.Column="2"/>
                                     </Grid>
 
                                     <Grid Grid.Row="2">
@@ -83,9 +69,6 @@
                                             <ColumnDefinition Width="Auto"/>
                                             <ColumnDefinition Width="*"/>
                                         </Grid.ColumnDefinitions>
-
-                                        <Label Content="Debute a :" Grid.Column="0"/>
-                                        <Label Content="{Binding ViewModel.ClientControler.BackupJob.StartedAt}" Grid.Column="1"/>
                                     </Grid>
                                 </Grid>
 
@@ -116,7 +99,7 @@
                                             <Style TargetType="Button">
                                                 <Setter Property="Content" Value="Pause"/>
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ViewModel.ClientControler.BackupJob.IsPaused}" Value="True">
+                                                    <DataTrigger Binding="{Binding IsPaused}" Value="True">
                                                         <Setter Property="Content" Value="Relancer"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -135,6 +118,7 @@
             </ItemsControl>
         </ScrollViewer>
 
+        <!--
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -148,7 +132,6 @@
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <!-- First row: Started At and Buttons -->
                 <Grid Grid.Row="0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -163,15 +146,11 @@
 
                     <Label Content="Debute a :" Grid.Column="0" VerticalAlignment="Center"/>
                     <Label Content="{Binding StartedAt}" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0"/>
-                    <!-- Spacer in Grid.Column="2" -->
                     <Button x:Name="PauseAllButton" Content="Tout mettre en pause" Width="140" Height="30" Grid.Column="3" Click="PauseAllButton_Click"/>
-                    <!-- Spacer in Grid.Column="4" -->
                     <Button x:Name="ResumeAllButton" Content="Tout relancer" Width="100" Height="30" Grid.Column="5" Click="ResumeAllButton_Click"/>
-                    <!-- Spacer in Grid.Column="6" -->
                     <Button x:Name="CancelAllButton" Content="Tout annuler" Width="100" Height="30" Grid.Column="7" Click="CancelAllButton_Click"/>
                 </Grid>
 
-                <!-- Second row: File copy info -->
                 <Grid Grid.Row="1" Margin="0,0,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -185,7 +164,6 @@
                     <Label Content="{Binding TotalFilesToCopy}" Grid.Column="3" Margin="5,0,0,0"/>
                 </Grid>
 
-                <!-- Third row: Progress bar -->
                 <Grid Grid.Row="2">
                     <ProgressBar Grid.Row="2" Value="{Binding Progression, Mode=OneWay}" Height="24" Foreground="LightGray" Margin="0,5,0,0"/>
                     <TextBlock Text="{Binding Progression, StringFormat={}{0:F0}%}" 
@@ -196,5 +174,6 @@
                 </Grid>
             </Grid>
         </Grid>
+        -->
     </Grid>
 </UserControl>
