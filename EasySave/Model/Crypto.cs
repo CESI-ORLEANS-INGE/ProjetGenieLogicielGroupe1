@@ -37,6 +37,7 @@ public class Crypto : ICrypto {
     private static StreamWriter? _PipeWriter { get; set; } = null;
     private static bool _IsPipeConnected => _PipeClient?.IsConnected ?? false;
     private static Task? _PipeReaderTask { get; set; } = null;
+    private static readonly object _Lock = new();
 
     private string _ExecutablePath { get; set; }
     private string _CryptoKey { get; set; }
@@ -65,23 +66,27 @@ public class Crypto : ICrypto {
     }
 
     public static ICrypto Acquire() {
-        if (_Instance is null) {
-            throw new InvalidOperationException("Crypto instance is not initialized. Call constructor first");
-        }
-        _AcquireCount++;
+        lock (_Lock) {
+            if (_Instance is null) {
+                throw new InvalidOperationException("Crypto instance is not initialized. Call constructor first");
+            }
+            _AcquireCount++;
 
-        if (_AcquireCount == 1) {
-            _ConnectNamedPipe();
-        }
+            if (_AcquireCount == 1) {
+                _ConnectNamedPipe();
+            }
 
-        return _Instance;
+            return _Instance;
+        }
     }
 
     public void Release() {
-        _AcquireCount--;
+        lock (_Lock) {
+            _AcquireCount--;
 
-        if (_AcquireCount == 0) {
-            _DisconnectNamedPipe();
+            if (_AcquireCount == 0) {
+                _DisconnectNamedPipe();
+            }
         }
     }
 

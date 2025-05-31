@@ -89,6 +89,9 @@ public interface IBackupJob {
 }
 
 public abstract class BackupJob(string name, IDirectoryHandler source, IDirectoryHandler destination) : IBackupJob, INotifyPropertyChanged {
+    private static double _ConcurrentTasksSize = 0;
+    private static readonly object _SizeLock = new();
+    private static readonly ManualResetEventSlim _CanProceed = new(true);
     public string Name { get; } = name;
     public IDirectoryHandler Source { get; } = source;
     public IDirectoryHandler Destination { get; } = destination;
@@ -153,7 +156,18 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
                     task.StartTime = DateTime.Now;
 
                     // dev
-                    Thread.Sleep(500);
+                    //Thread.Sleep(500);
+
+
+                    double taskSize = task.Source?.GetSize() ?? 0;
+
+                    lock (_SizeLock) {
+                        BackupJob._ConcurrentTasksSize += taskSize;
+
+                        if (BackupJob._ConcurrentTasksSize > Configuration.Instance?.MaxConcurrentSize) {
+                            _CanProceed.Wait();
+                        }
+                    }
 
                     try {
                         task.Run();
@@ -162,6 +176,13 @@ public abstract class BackupJob(string name, IDirectoryHandler source, IDirector
                     } catch (Exception ex) {
                         this.BackupJobError?.Invoke(this, new BackupJobErrorEventArgs(this.Name, ex.Message));
                         return;
+                    } finally {
+                        lock (_SizeLock) {
+                            BackupJob._ConcurrentTasksSize -= taskSize;
+                            if (BackupJob._ConcurrentTasksSize < Configuration.Instance?.MaxConcurrentSize) {
+                                _CanProceed.Set();
+                            }
+                        }
                     }
                 }
             } catch (Exception ex) {

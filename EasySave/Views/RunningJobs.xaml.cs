@@ -81,7 +81,8 @@ namespace EasySave.Views {
                 return;
             }
 
-            foreach (IBackupJobState jobState in this.ViewModel.BackupState.JobState) {
+            List<IBackupJobState> jobsState = [.. this.ViewModel.BackupState.JobState];
+            foreach (IBackupJobState jobState in jobsState) {
                 if (jobState.State == State.ACTIVE || jobState.State == State.IN_PROGRESS || jobState.State == State.PAUSED) {
                     this._RunningJobList.Add(jobState);
                 }

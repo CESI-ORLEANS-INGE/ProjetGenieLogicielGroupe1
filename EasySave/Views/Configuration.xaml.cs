@@ -1,6 +1,8 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Windows.Controls;
 using EasySave.Model;
 using Microsoft.Win32;
@@ -122,6 +124,35 @@ namespace EasySave.Views {
             // Set the key in the ViewModel/Configuration
             _ViewModel.Configuration.CryptoKey = hex;
             _ViewModel.OnPropertyChanged("EncryptionKey");
+        }
+
+        // --- PriorityExtensions Handlers ---
+
+        private void AddPriorityExtension_Click(object sender, RoutedEventArgs e) {
+            var input = PriorityExtensionInput.Text?.Trim();
+            if (string.IsNullOrEmpty(input))
+                return;
+
+            if (_ViewModel?.Configuration?.PriorityExtentions != null && !_ViewModel.Configuration.PriorityExtentions.Contains(input)) {
+                _ViewModel.Configuration.PriorityExtentions.Add(input);
+                PriorityExtensionInput.Clear();
+            }
+        }
+
+        private void RemovePriorityExtensionItem_Click(object sender, RoutedEventArgs e) {
+            if (sender is System.Windows.Controls.Button btn && btn.Tag is string item) {
+                _ViewModel?.Configuration?.PriorityExtentions?.Remove(item);
+            }
+        }
+
+        private void ClearPriorityExtensions_Click(object sender, RoutedEventArgs e) {
+            _ViewModel?.Configuration?.PriorityExtentions?.Clear();
+        }
+
+        // --- Numeric Only Input for MaxConcurrentJobs/MaxConcurrentSize ---
+
+        private void NumericOnly_PreviewTextInput(object sender, System.Windows.Input.TextCompositionEventArgs e) {
+            e.Handled = !Regex.IsMatch(e.Text, "^[0-9]+$");
         }
     }
 }

@@ -40,11 +40,11 @@ public interface IStateFile {
 
 public class StateFile(string filePath) : IStateFile {
     private string _FilePath { get; set; } = filePath;
-    private object _LockObject { get; } = new object();
+    private static object _LockObject { get; } = new();
     private JsonSerializerOptions _SerializerOptions { get; } = new() { WriteIndented = true };
 
     public void Save(List<IBackupJobState> jobsState) {
-        lock (this._LockObject) {
+        lock (_LockObject) {
             File.WriteAllText(this._FilePath, this.ToJSON(jobsState));
         }
     }
@@ -72,7 +72,7 @@ public class StateFile(string filePath) : IStateFile {
         if (!File.Exists(this._FilePath)) {
             throw new FileNotFoundException($"State file not found: {this._FilePath}");
         }
-        lock (this._LockObject) {
+        lock (_LockObject) {
             return File.ReadAllText(this._FilePath);
         }
     }

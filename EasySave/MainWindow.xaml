@@ -6,7 +6,7 @@
         xmlns:easysave="clr-namespace:EasySave"
         xmlns:converters="clr-namespace:EasySave.Converters"
         mc:Ignorable="av" 
-        Title="EasySave" Height="500" MinHeight="400" Width="900" MinWidth="700" 
+        Title="EasySave" Height="500" MinHeight="700" Width="900" MinWidth="700" 
 >
     <Grid x:Name="MainGrid" av:DataContext="{av:DesignInstance Type=easysave:MainWindow}">
         <Grid.ColumnDefinitions>
