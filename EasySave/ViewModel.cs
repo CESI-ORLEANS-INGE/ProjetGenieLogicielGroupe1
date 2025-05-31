@@ -84,8 +84,6 @@ public interface IViewModel : INotifyPropertyChanged {
 
 public class ViewModel : IViewModel {
     public const string CONFIGURATION_PATH = "./configuration.json";
-    private const int MAX_CONCURRENT_JOBS = 1;
-    private static readonly string[] PRIORITY_EXTENSIONS = { ".docx" };
     private const int PAUSE_CHECK_DELAY_MS = 100;
 
     public List<IBackupJob> BackupJobs { get; set; } = [];
@@ -240,8 +238,8 @@ public class ViewModel : IViewModel {
             this.BackupState.JobStateChanged += this.OnJobStateChanged;
 
             // Séparer les jobs prioritaires et normaux APRÈS la création des BackupJobs
-            var priorityJobs = GetPriorityJobs(this.BackupJobs, PRIORITY_EXTENSIONS);
-            var normalJobs = GetNormalJobs(this.BackupJobs, PRIORITY_EXTENSIONS);
+            var priorityJobs = GetPriorityJobs(this.BackupJobs, [.. Configuration.PriorityExtensions]);
+            var normalJobs = GetNormalJobs(this.BackupJobs, [.. Configuration.PriorityExtensions]);
 
             // Debug: Log pour vérifier la séparation
             Logger?.Info(new Log {
@@ -282,8 +280,8 @@ public class ViewModel : IViewModel {
             }
 
             // Sémaphores pour contrôler la concurrence
-            using SemaphoreSlim prioritySemaphore = new(MAX_CONCURRENT_JOBS);
-            using SemaphoreSlim normalSemaphore = new(MAX_CONCURRENT_JOBS);
+            using SemaphoreSlim prioritySemaphore = new(Configuration.MaxConcurrentJobs);
+            using SemaphoreSlim normalSemaphore = new(Configuration.MaxConcurrentJobs);
 
             try {
                 // Exécuter d'abord les tâches prioritaires
@@ -407,7 +405,7 @@ public class ViewModel : IViewModel {
                 Message = $"Création de l'état du job '{job.Name}'"
             });
 
-            this.BackupState.CreateJobState(job);
+            this.BackupState?.CreateJobState(job);
 
             Logger?.Info(new Log {
                 JobName = job.Name,
@@ -453,7 +451,7 @@ public class ViewModel : IViewModel {
     /// <summary>
     /// Organise les jobs par priorité en fonction des extensions de fichiers
     /// </summary>
-    private List<IBackupJob> OrganizeJobsByPriority(List<IBackupJob> jobs, string[] priorityExtensions) {
+    private List<IBackupJob> OrganizeJobsByPriority(List<IBackupJob> jobs, List<string> priorityExtensions) {
         var priorityJobs = new List<IBackupJob>();
         var normalJobs = new List<IBackupJob>();
 
@@ -476,43 +474,43 @@ public class ViewModel : IViewModel {
     /// <summary>
     /// Vérifie si un job contient des fichiers avec des extensions prioritaires
     /// </summary>
-    private bool JobHasPriorityFiles(IBackupJob job, string[] priorityExtensions) {
+    private bool JobHasPriorityFiles(IBackupJob job, List<string> priorityExtensions) {
         try {
             // Récupérer tous les fichiers du job  
             var entries = job.Source.GetEntries();
 
             // Debug: Log des informations sur le job
-            Logger?.Info(new Log {
-                JobName = job.Name,
-                Message = $"Vérification des priorités pour le job '{job.Name}', {entries.Count()} entrées trouvées"
-            });
+            //Logger?.Info(new Log {
+            //    JobName = job.Name,
+            //    Message = $"Vérification des priorités pour le job '{job.Name}', {entries.Count()} entrées trouvées"
+            //});
 
             // Vérifier si au moins un fichier a une extension prioritaire
             var fileHandlers = entries.OfType<IFileHandler>().ToList();
 
             foreach (var file in fileHandlers) {
-                string extension = System.IO.Path.GetExtension(file.GetPath()).ToLowerInvariant();
+                string extension = System.IO.Path.GetExtension(file.GetPath()).ToLowerInvariant()[1..];
                 bool isPriority = priorityExtensions.Contains(extension);
 
                 // Debug: Log pour chaque fichier vérifié
-                Logger?.Info(new Log {
-                    JobName = job.Name,
-                    Message = $"Fichier: {file.GetPath()}, Extension: {extension}, Prioritaire: {isPriority}"
-                });
+                //Logger?.Info(new Log {
+                //    JobName = job.Name,
+                //    Message = $"Fichier: {file.GetPath()}, Extension: {extension}, Prioritaire: {isPriority}"
+                //});
 
                 if (isPriority) {
-                    Logger?.Info(new Log {
-                        JobName = job.Name,
-                        Message = $"Job '{job.Name}' marqué comme prioritaire (extension {extension} trouvée)"
-                    });
+                    //Logger?.Info(new Log {
+                    //    JobName = job.Name,
+                    //    Message = $"Job '{job.Name}' marqué comme prioritaire (extension {extension} trouvée)"
+                    //});
                     return true;
                 }
             }
 
-            Logger?.Info(new Log {
-                JobName = job.Name,
-                Message = $"Job '{job.Name}' marqué comme normal (aucune extension prioritaire trouvée)"
-            });
+            //Logger?.Info(new Log {
+            //    JobName = job.Name,
+            //    Message = $"Job '{job.Name}' marqué comme normal (aucune extension prioritaire trouvée)"
+            //});
 
             return false;
         } catch (Exception ex) {
@@ -528,14 +526,14 @@ public class ViewModel : IViewModel {
     /// <summary>
     /// Récupère les jobs prioritaires
     /// </summary>
-    private List<IBackupJob> GetPriorityJobs(List<IBackupJob> jobs, string[] priorityExtensions) {
+    private List<IBackupJob> GetPriorityJobs(List<IBackupJob> jobs, List<string> priorityExtensions) {
         return jobs.Where(job => JobHasPriorityFiles(job, priorityExtensions)).ToList();
     }
 
     /// <summary>
     /// Récupère les jobs normaux
     /// </summary>
-    private List<IBackupJob> GetNormalJobs(List<IBackupJob> jobs, string[] priorityExtensions) {
+    private List<IBackupJob> GetNormalJobs(List<IBackupJob> jobs, List<string> priorityExtensions) {
         return jobs.Where(job => !JobHasPriorityFiles(job, priorityExtensions)).ToList();
     }
 
@@ -747,9 +745,9 @@ public class ViewModel : IViewModel {
     }
 
     public string ExtensionsToEncrypt {
-        get => string.Join(";", Configuration.CryptoExtentions);
+        get => string.Join(";", Configuration.CryptoExtensions);
         set {
-            Configuration.CryptoExtentions = [.. value.Split(';')];
+            Configuration.CryptoExtensions = [.. value.Split(';')];
             OnPropertyChanged(nameof(ExtensionsToEncrypt));
         }
     }

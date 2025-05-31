@@ -32,11 +32,11 @@ public interface IConfiguration {
     string StateFile { get; set; }
     string LogFile { get; set; }
     ObservableCollection<string> Processes { get; set; }
-    ObservableCollection<string> CryptoExtentions { get; set; }
+    ObservableCollection<string> CryptoExtensions { get; set; }
     string CryptoFile { get; set; }
     string CryptoKey { get; set; }
     ObservableCollection<IBackupJobConfiguration> Jobs { get; set; }
-    ObservableCollection<string> PriorityExtentions { get; set; }
+    ObservableCollection<string> PriorityExtensions { get; set; }
     int MaxConcurrentJobs { get; set; }
     int MaxConcurrentSize { get; set; }
 
@@ -62,13 +62,13 @@ public class Configuration : IConfiguration {
     // List of processes to detect
     private static string? _CryptoKey;
     private static ObservableCollection<string>? _Processes;
-    // List of crypt extentions
-    private static ObservableCollection<string>? _CryptExtentions;
+    // List of crypt extensions
+    private static ObservableCollection<string>? _CryptExtensions;
     // Crypto file of the application
     private static string? _CryptoFile;
     // List of jobs
     private static ObservableCollection<IBackupJobConfiguration>? _Jobs;
-    private static ObservableCollection<string>? _PriorityExtentions;
+    private static ObservableCollection<string>? _PriorityExtensions;
     private static int _MaxConcurrentJobs = IConfiguration.DEFAULT_MAX_CONCURRENT_JOBS;
     private static int _MaxConcurrentSize = IConfiguration.DEFAULT_MAX_CONCURRENT_SIZE;
 
@@ -153,16 +153,16 @@ public class Configuration : IConfiguration {
         }
     }
 
-    public ObservableCollection<string> CryptoExtentions {
-        // getting the crypt extentions list
-        get => _CryptExtentions ?? new ObservableCollection<string>();
-        // setting the crypt extentions list and raising the event
+    public ObservableCollection<string> CryptoExtensions {
+        // getting the crypt extensions list
+        get => _CryptExtensions ?? new ObservableCollection<string>();
+        // setting the crypt extensions list and raising the event
         set {
-            _CryptExtentions = value;
+            _CryptExtensions = value;
             // set the configuration changed event
             this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
-                // set the new crypt extentions list to save
-                PropertyName = nameof(CryptoExtentions)
+                // set the new crypt extensions list to save
+                PropertyName = nameof(CryptoExtensions)
             });
         }
     }
@@ -185,16 +185,16 @@ public class Configuration : IConfiguration {
         }
     }
 
-    public ObservableCollection<string> PriorityExtentions {
-        // getting the priority extentions list
-        get => _PriorityExtentions ?? new ObservableCollection<string>();
-        // setting the priority extentions list and raising the event
+    public ObservableCollection<string> PriorityExtensions {
+        // getting the priority extensions list
+        get => _PriorityExtensions ?? new ObservableCollection<string>();
+        // setting the priority extensions list and raising the event
         set {
-            _PriorityExtentions = value;
+            _PriorityExtensions = value;
             // set the configuration changed event
             this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
-                // set the new priority extentions list to save
-                PropertyName = nameof(PriorityExtentions)
+                // set the new priority extensions list to save
+                PropertyName = nameof(PriorityExtensions)
             });
         }
     }
@@ -256,20 +256,20 @@ public class Configuration : IConfiguration {
         this.CryptoFile = configuration.CryptoFile ?? IConfiguration.DEFAULT_CRYPTO_FILE;
         this.CryptoKey = configuration.CryptoKey ?? IConfiguration.DEFAULT_CRYPTO_KEY;
         this.Processes = new ObservableCollection<string>(configuration.Processes ?? []);
-        this.CryptoExtentions = new ObservableCollection<string>(configuration.CryptoExtentions ?? []);
+        this.CryptoExtensions = new ObservableCollection<string>(configuration.CryptoExtensions ?? []);
         this.Jobs = new ObservableCollection<IBackupJobConfiguration>(configuration.Jobs?.Select(j => new BackupJobConfiguration {
             Name = j.Name,
             Source = j.Source,
             Destination = j.Destination,
             Type = j.Type
         }) ?? []);
-        this.PriorityExtentions = new ObservableCollection<string>(configuration.PriorityExtentions ?? []);
+        this.PriorityExtensions = new ObservableCollection<string>(configuration.PriorityExtensions ?? []);
         this.MaxConcurrentJobs = configuration.MaxConcurrentJobs > 0 ? configuration.MaxConcurrentJobs : IConfiguration.DEFAULT_MAX_CONCURRENT_JOBS;
         this.MaxConcurrentSize = configuration.MaxConcurrentSize > 0 ? configuration.MaxConcurrentSize : IConfiguration.DEFAULT_MAX_CONCURRENT_SIZE;
-        // Subscribe to the CollectionChanged event for Processes and CryptoExtentions
+        // Subscribe to the CollectionChanged event for Processes and CryptoExtensions
         this.Processes.CollectionChanged += Processes_CollectionChanged;
-        this.CryptoExtentions.CollectionChanged += CryptoExtentions_CollectionChanged;
-        this.PriorityExtentions.CollectionChanged += PriorityExtentions_CollectionChanged;
+        this.CryptoExtensions.CollectionChanged += CryptoExtensions_CollectionChanged;
+        this.PriorityExtensions.CollectionChanged += PriorityExtensions_CollectionChanged;
         // Subscribe to the JobConfigurationChanged event for each job
         foreach (IBackupJobConfiguration jobConfiguration in this.Jobs) {
             jobConfiguration.JobConfigurationChanged += (sender, args) => {
@@ -283,9 +283,9 @@ public class Configuration : IConfiguration {
         Configuration.Instance = this;
     }
 
-    private void CryptoExtentions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+    private void CryptoExtensions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
-            PropertyName = nameof(CryptoExtentions)
+            PropertyName = nameof(CryptoExtensions)
         });
     }
 
@@ -295,9 +295,9 @@ public class Configuration : IConfiguration {
         });
     }
 
-    private void PriorityExtentions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
+    private void PriorityExtensions_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
         this.ConfigurationChanged?.Invoke(this, new ConfigurationChangedEventArgs {
-            PropertyName = nameof(PriorityExtentions)
+            PropertyName = nameof(PriorityExtensions)
         });
     }
 
@@ -351,9 +351,9 @@ public class Configuration : IConfiguration {
             ["CryptoFile"] = this.CryptoFile,
             ["CryptoKey"] = this.CryptoKey,
             ["Processes"] = new JsonArray([.. this.Processes]),
-            ["CryptoExtentions"] = new JsonArray([.. this.CryptoExtentions]),
+            ["CryptoExtensions"] = new JsonArray([.. this.CryptoExtensions]),
             ["Jobs"] = new JsonArray([.. this.Jobs.Select(j => j.ToJSON())]),
-            ["PriorityExtentions"] = new JsonArray([.. this.PriorityExtentions]),
+            ["PriorityExtensions"] = new JsonArray([.. this.PriorityExtensions]),
             ["MaxConcurrentJobs"] = this.MaxConcurrentJobs,
             ["MaxConcurrentSize"] = this.MaxConcurrentSize
         };

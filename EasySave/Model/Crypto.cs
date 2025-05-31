@@ -171,8 +171,8 @@ public class Crypto : ICrypto {
             throw new InvalidOperationException("Failed to connect to the crypto service. Ensure CryptoSoft is running and the pipe is available.");
         }
 
-        bool responseReceived = false;
         double duration = -1;
+        ManualResetEventSlim waitHandle = new(false);
 
         EventHandler<CryptoResponseEventArgs> _OnResponseReceived = new((sender, e) => {
             JsonObject json = JsonNode.Parse(e.Response) as JsonObject ?? throw new InvalidOperationException("Invalid JSON response received.");
@@ -181,7 +181,7 @@ public class Crypto : ICrypto {
                     throw new InvalidOperationException("Invalid duration value in response.");
                 }
                 duration = parsedDuration;
-                responseReceived = true;
+                waitHandle.Set();
             }
         });
 
@@ -192,7 +192,7 @@ public class Crypto : ICrypto {
             ["CryptoKey"] = _Instance!._CryptoKey
         }.ToJsonString()); // Using ToJsonString() to ensure proper serialization)
 
-        while (!responseReceived) { }
+        waitHandle.Wait(TimeSpan.FromSeconds(2));
 
         _ResponseReceived -= _OnResponseReceived;
 

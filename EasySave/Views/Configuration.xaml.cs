@@ -64,15 +64,15 @@ namespace EasySave.Views {
             if (string.IsNullOrEmpty(input))
                 return;
 
-            if (_ViewModel?.Configuration?.CryptoExtentions != null && !_ViewModel.Configuration.CryptoExtentions.Contains(input)) {
-                _ViewModel.Configuration.CryptoExtentions.Add(input);
+            if (_ViewModel?.Configuration?.CryptoExtensions != null && !_ViewModel.Configuration.CryptoExtensions.Contains(input)) {
+                _ViewModel.Configuration.CryptoExtensions.Add(input);
                 ExtensionInput.Clear();
             }
         }
 
         private void RemoveExtensionItem_Click(object sender, RoutedEventArgs e) {
             if (sender is System.Windows.Controls.Button btn && btn.Tag is string item) {
-                _ViewModel?.Configuration?.CryptoExtentions?.Remove(item);
+                _ViewModel?.Configuration?.CryptoExtensions?.Remove(item);
             }
         }
 
@@ -94,7 +94,7 @@ namespace EasySave.Views {
         }
 
         private void ClearExtensions_Click(object sender, RoutedEventArgs e) {
-            _ViewModel?.Configuration?.CryptoExtentions?.Clear();
+            _ViewModel?.Configuration?.CryptoExtensions?.Clear();
         }
 
         private void ClearProcesses_Click(object sender, RoutedEventArgs e) {
@@ -133,20 +133,20 @@ namespace EasySave.Views {
             if (string.IsNullOrEmpty(input))
                 return;
 
-            if (_ViewModel?.Configuration?.PriorityExtentions != null && !_ViewModel.Configuration.PriorityExtentions.Contains(input)) {
-                _ViewModel.Configuration.PriorityExtentions.Add(input);
+            if (_ViewModel?.Configuration?.PriorityExtensions != null && !_ViewModel.Configuration.PriorityExtensions.Contains(input)) {
+                _ViewModel.Configuration.PriorityExtensions.Add(input);
                 PriorityExtensionInput.Clear();
             }
         }
 
         private void RemovePriorityExtensionItem_Click(object sender, RoutedEventArgs e) {
             if (sender is System.Windows.Controls.Button btn && btn.Tag is string item) {
-                _ViewModel?.Configuration?.PriorityExtentions?.Remove(item);
+                _ViewModel?.Configuration?.PriorityExtensions?.Remove(item);
             }
         }
 
         private void ClearPriorityExtensions_Click(object sender, RoutedEventArgs e) {
-            _ViewModel?.Configuration?.PriorityExtentions?.Clear();
+            _ViewModel?.Configuration?.PriorityExtensions?.Clear();
         }
 
         // --- Numeric Only Input for MaxConcurrentJobs/MaxConcurrentSize ---

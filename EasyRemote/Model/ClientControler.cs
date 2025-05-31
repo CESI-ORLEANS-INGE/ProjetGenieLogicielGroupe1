@@ -209,6 +209,7 @@ namespace EasyRemote.Model {
                         var states = JsonSerializer.Deserialize<List<BackupJobState>>(message.Substring(6));
                         if (states is not null) {
                             foreach (var state in states) {
+                                if (state.State == "END") continue;
                                 RunningJobList.Add(state);
 
                                 IBackupJob? job = BackupJob.First((j) => j.Name.Equals(state.Name, StringComparison.InvariantCultureIgnoreCase));

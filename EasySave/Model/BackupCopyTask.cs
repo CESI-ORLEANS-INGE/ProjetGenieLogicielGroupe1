@@ -25,7 +25,7 @@ public class BackupCopyTask : BackupTask {
         ICrypto crypto = Crypto.Acquire();
         try {
             string extension = Path.GetExtension(Destination.GetPath()).ToLower();
-            if (Configuration.Instance.CryptoExtentions.Select(ext => ext.StartsWith('.') ? ext.ToLower() : '.' + ext.ToLower()).Contains(extension)) {
+            if (Configuration.Instance.CryptoExtensions.Select(ext => ext.StartsWith('.') ? ext.ToLower() : '.' + ext.ToLower()).Contains(extension)) {
                 CryptDuration = crypto.Crypt(Destination.GetPath());
             }
         } finally {

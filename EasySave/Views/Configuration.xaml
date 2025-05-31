@@ -76,7 +76,7 @@
                         <Button DockPanel.Dock="Right" Content="{Binding Language.Translations[CONFIG_ADD]}" Width="50" Height="30" Click="AddExtension_Click"/>
                         <TextBox x:Name="ExtensionInput" Height="30" VerticalContentAlignment="Center" Margin="0,0,5,0"/>
                     </DockPanel>
-                    <ItemsControl x:Name="ExtensionsListBox" ItemsSource="{Binding Configuration.CryptoExtentions}" Margin="0,0,0,0">
+                    <ItemsControl x:Name="ExtensionsListBox" ItemsSource="{Binding Configuration.CryptoExtensions}" Margin="0,0,0,0">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
@@ -152,7 +152,7 @@
                         <Button DockPanel.Dock="Right" Content="{Binding Language.Translations[CONFIG_ADD]}" Width="50" Height="30" Click="AddPriorityExtension_Click"/>
                         <TextBox x:Name="PriorityExtensionInput" Height="30" VerticalContentAlignment="Center" Margin="0,0,5,0"/>
                     </DockPanel>
-                    <ItemsControl x:Name="PriorityExtensionsListBox" ItemsSource="{Binding Configuration.PriorityExtentions}" Margin="0,0,0,0">
+                    <ItemsControl x:Name="PriorityExtensionsListBox" ItemsSource="{Binding Configuration.PriorityExtensions}" Margin="0,0,0,0">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
