@@ -15,9 +15,10 @@ namespace EasyRemote.Views
 
     public partial class HostWindow : Window, INotifyPropertyChanged
     {
-        public HostWindow()
+        public HostWindow(IViewModel viewModel)
         {
             InitializeComponent();
+            this.ViewModel = viewModel;
             DataContext = this;
         }
         public event PropertyChangedEventHandler PropertyChanged;

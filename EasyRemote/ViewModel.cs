@@ -10,19 +10,11 @@ namespace EasyRemote
 {
     public interface IViewModel
     {
-        IClientControler ClientControler { get; }
-        List<IBackupJob> Jobs { get; }
-        List<IBackupJobState> JobsState { get; }
-        public void OnPropertyChanged(string propertyName);
+        public IClientControler ClientControler { get; }
     }
-    class ViewModel
+    class ViewModel : IViewModel
     {
-        IClientControler ClientControler { get; }
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public void OnPropertyChanged(string propertyName)
-        {
-            this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+        public IClientControler ClientControler { get; }
+        
     }
 }
