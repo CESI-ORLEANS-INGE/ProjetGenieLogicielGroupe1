@@ -21,7 +21,7 @@ public class BackupJobFactory : IBackupJobFactory {
     /// <exception cref="ArgumentException">Thrown when the backup job type is unknown.</exception>
     public static IBackupJob Create(IBackupJobConfiguration configuration) {
         return configuration.Type switch {
-            "Sequential" => new SequentialBackupJob(
+            "Differential" => new DifferentialBackupJob(
                                 configuration.Name,
                                 new DirectoryHandler(configuration.Source),
                                 new DirectoryHandler(configuration.Destination)

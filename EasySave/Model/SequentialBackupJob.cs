@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EasySave.Model;
 
-public class SequentialBackupJob(string name, IDirectoryHandler source, IDirectoryHandler destination) : BackupJob(name, source, destination) {
+public class DifferentialBackupJob(string name, IDirectoryHandler source, IDirectoryHandler destination) : BackupJob(name, source, destination) {
     public override void Analyze() {
         // Perform analysis of the source and destination directories
         // to determine the files that need to be backed up.
@@ -25,7 +25,7 @@ public class SequentialBackupJob(string name, IDirectoryHandler source, IDirecto
         foreach (IEntryHandler entry in sourceEntries) {
             if (entry is IFileHandler file) {
                 if (destination.Contains(entry)) {
-                    if (SequentialBackupJob.IsFileModified(file, destination.GetFile(entry.GetName()))) {
+                    if (DifferentialBackupJob.IsFileModified(file, destination.GetFile(entry.GetName()))) {
                         // The file is modified
                         // Add a copy task to the list of tasks
                         this.Tasks.Add(new BackupCopyTask(entry, destination.GetFile(entry.GetName())));
