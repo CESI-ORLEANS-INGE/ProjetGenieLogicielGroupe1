@@ -165,5 +165,11 @@ public class LogFileJSON : ILogFile { // Saves a Log object to a JSON file
             }
         }
     }
+
+    public void Clear(string filePath) {
+        lock(_LockObject) {
+            File.WriteAllText(filePath, "");
+        }
+    }
 }
 

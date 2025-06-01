@@ -51,10 +51,10 @@
             <Button Content="{Binding ViewModel.Language.Translations[JOB_EDIT_BROWSE]}" Grid.Column="1" Width="60" Click="BrowseDestination_Click" Padding="5,2"/>
         </Grid>
 
-        <!-- Mode (Sequential/Other) -->
+        <!-- Mode (Differential/Other) -->
         <Image Source="/Resources/Images/scanner.png" Width="20" Height="20" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="0,0,5,0"/>
         <ComboBox Name="BackupTypeComboBox" Grid.Row="3" Grid.Column="1" Margin="0,2,0,2" HorizontalAlignment="Stretch" SelectedValue ="{Binding Job.Type}" SelectedValuePath="Content">
-            <ComboBoxItem Content="Sequential" IsSelected="True"/>
+            <ComboBoxItem Content="Differential" IsSelected="True"/>
             <ComboBoxItem Content="Complete"/>
         </ComboBox>
 

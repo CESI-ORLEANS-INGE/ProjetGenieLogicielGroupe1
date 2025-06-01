@@ -1,17 +1,19 @@
-﻿using System.Windows;
-using EasySave.Logger; // selon ton namespace
+﻿using EasySave.Logger;
 using System.Collections.ObjectModel;
-using System.Windows.Controls;
-using System.Windows.Input;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 
 namespace EasySave.Views;
 public partial class Logs : INotifyPropertyChanged {
     public IViewModel ViewModel { get; private set; }
-    public ObservableCollection<Log> LogCollection { get; set; }
-    public ObservableCollection<Log> PagedLogCollection { get; set; } = new();
-    public int PageSize { get; set; } = 20;
+    public ObservableCollection<Log> LogCollection { get; private set; } = [];
+    public ObservableCollection<Log> PagedLogCollection { get; private set; } = [];
+    public ObservableCollection<string> LogLevels { get; private set; } = [];
+    public int PageSize { get; set; } = 25;
     private int _currentPage = 1;
     public int CurrentPage {
         get => _currentPage;
@@ -20,20 +22,64 @@ public partial class Logs : INotifyPropertyChanged {
                 _currentPage = value;
                 OnPropertyChanged(nameof(CurrentPage));
                 UpdatePagedLogCollection();
-                OnPropertyChanged(nameof(PageIndicator));
-                OnPropertyChanged(nameof(IsPreviousEnabled));
-                OnPropertyChanged(nameof(IsNextEnabled));
-                OnPropertyChanged(nameof(IsFirstEnabled));
-                OnPropertyChanged(nameof(IsLastEnabled));
             }
         }
     }
     public int TotalPages => (LogCollection.Count + PageSize - 1) / PageSize;
-    public string PageIndicator => $"Page {CurrentPage} of {TotalPages}";
     public bool IsPreviousEnabled => CurrentPage > 1;
     public bool IsNextEnabled => CurrentPage < TotalPages;
     public bool IsFirstEnabled => CurrentPage > 1;
     public bool IsLastEnabled => CurrentPage < TotalPages;
+    public string _search = "";
+    public string Search {
+        get => _search;
+        set {
+            if (_search != value) {
+                _search = value;
+                OnPropertyChanged(nameof(Search));
+            }
+        }
+    }
+    public string? _FilteredLogLevel = null;
+    public string? FilteredLogLevel {
+        get => _FilteredLogLevel;
+        set {
+            if (_FilteredLogLevel != value && value is not null) {
+                _FilteredLogLevel = value;
+                OnPropertyChanged(nameof(FilteredLogLevel));
+                UpdateLogCollection();
+            }
+        }
+    }
+
+    // https://stackoverflow.com/a/1268648
+    private static readonly Regex _NumberRegex = new("[^0-9.-]+");
+    private static bool _IsNumericInput(string text) {
+        return !_NumberRegex.IsMatch(text);
+    }
+    private void NumberBoxPasting(object sender, DataObjectPastingEventArgs e) {
+        if (e.DataObject.GetDataPresent(typeof(String))) {
+            String text = (String)e.DataObject.GetData(typeof(String));
+            if (!_IsNumericInput(text)) {
+                e.CancelCommand();
+            }
+        } else {
+            e.CancelCommand();
+        }
+    }
+    private void PreviewNumberInput(object sender, TextCompositionEventArgs e) {
+        if (sender is System.Windows.Controls.TextBox textBox) {
+            if (!_IsNumericInput(e.Text) || string.IsNullOrEmpty(e.Text)) {
+                e.Handled = true; // Prevent non-numeric input
+                return;
+            }
+            // Optionally, you can limit the length of the input
+            if (textBox.Text.Length >= 5) { // Example: limit to 5 characters
+                e.Handled = true;
+                return;
+            }
+        }
+    }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -42,41 +88,78 @@ public partial class Logs : INotifyPropertyChanged {
 
         InitializeComponent();
 
-        var logReader = new LogFileJSON();
-        List<Log> logs = logReader.Read(viewModel.Configuration.LogFile);
-
-        LogCollection = [.. logs];
-        UpdatePagedLogCollection();
+        UpdateLogCollection();
         MainGrid.DataContext = this;
 
         //Task.Run(() => {
-        //    Dispatcher.Invoke(() => {
-        //        while (true) {
-        //            List<Log> logs = logReader.Read(viewModel.Configuration.LogFile);
+        //    while (true) {
+        //        List<Log> logs = ReadLogs();
 
-        //            if (logs.Count > LogCollection.Count) {
-        //                foreach (var log in logs.Skip(LogCollection.Count))
-        //                    LogCollection.Add(log);
-        //                UpdatePagedLogCollection();
-        //            }
-
-        //            Task.Delay(1000).Wait();
+        //        if (logs.Count > LogCollection.Count) {
+        //            this.Dispatcher.Invoke(() => {
+        //                UpdateLogCollection(logs);
+        //            });
         //        }
-        //    });
+
+        //        Thread.Sleep(1000);
+        //    }
         //});
+    }
+
+    private List<Log> ReadLogs() {
+        var logReader = new LogFileJSON();
+        return logReader.Read(this.ViewModel.Configuration.LogFile);
     }
 
     private void UpdatePagedLogCollection() {
         PagedLogCollection.Clear();
-        var items = LogCollection.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
-        foreach (var log in items)
+        IEnumerable<Log> logs = LogCollection.Skip((CurrentPage - 1) * PageSize).Take(PageSize);
+        foreach (Log log in logs) {
             PagedLogCollection.Add(log);
-        OnPropertyChanged(nameof(PagedLogCollection));
-        OnPropertyChanged(nameof(PageIndicator));
+        }
+
+        if (CurrentPage > TotalPages) {
+            CurrentPage = 1;
+        }
+
+        OnPropertyChanged(nameof(TotalPages));
         OnPropertyChanged(nameof(IsPreviousEnabled));
         OnPropertyChanged(nameof(IsNextEnabled));
         OnPropertyChanged(nameof(IsFirstEnabled));
         OnPropertyChanged(nameof(IsLastEnabled));
+    }
+
+    private void UpdateLogCollection(IEnumerable<Log>? logs = null) {
+        LogCollection.Clear();
+        logs ??= ReadLogs();
+
+        if (!string.IsNullOrEmpty(Search)) {
+            var searchPattern = Search.ToLowerInvariant();
+            logs = logs.Where(log => log.Message.Contains(searchPattern, StringComparison.InvariantCultureIgnoreCase) ||
+                                                  log.Level.ToString().Contains(searchPattern, StringComparison.InvariantCultureIgnoreCase) ||
+                                                  log.Destination.Contains(searchPattern, StringComparison.CurrentCultureIgnoreCase) ||
+                                                  log.Source.Contains(searchPattern, StringComparison.CurrentCultureIgnoreCase) ||
+                                                  log.JobName.Contains(searchPattern, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        LogLevels.Clear();
+        foreach (var level in logs.Select(l => l.Level.ToString()).Distinct()) {
+            LogLevels.Add(level);
+        }
+
+        if (
+            !string.IsNullOrEmpty(FilteredLogLevel) &&
+            !string.IsNullOrWhiteSpace(FilteredLogLevel) &&
+            LogLevels.Contains(FilteredLogLevel, StringComparer.CurrentCultureIgnoreCase)
+        ) {
+            logs = LogCollection.Where(log => log.Level.ToString().Equals(FilteredLogLevel, StringComparison.CurrentCultureIgnoreCase));
+        }
+
+        foreach (Log log in logs) {
+            LogCollection.Add(log);
+        }
+
+        UpdatePagedLogCollection();
     }
 
     private void PreviousPage_Click(object sender, RoutedEventArgs e) {
@@ -109,4 +192,18 @@ public partial class Logs : INotifyPropertyChanged {
 
     protected void OnPropertyChanged(string propertyName)
         => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+    private void SearchButton_Click(object sender, RoutedEventArgs e) {
+        UpdateLogCollection();
+    }
+
+    private void RefreshButton_Click(object sender, RoutedEventArgs e) {
+        UpdateLogCollection();
+    }
+
+    private void ClearButton_Click(object sender, RoutedEventArgs e) {
+        var logReader = new LogFileJSON();
+        logReader.Clear(this.ViewModel.Configuration.LogFile);
+        UpdateLogCollection();
+    }
 }

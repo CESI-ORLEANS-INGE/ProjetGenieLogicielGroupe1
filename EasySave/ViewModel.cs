@@ -577,13 +577,18 @@ public class ViewModel : IViewModel {
                 }
 
                 job.Analyze();
-                this.BackupState.CreateJobState(job);
+                this.BackupState?.CreateJobState(job);
                 Task task = job.Run();
 
                 // Vérification habituelle des processus
                 if (this.ProcessesDetector.HasOneOrMoreProcessRunning()) job.Pause();
 
                 await task;
+            } catch (Exception ex) {
+                Logger?.Error(new Log {
+                    JobName = job.Name,
+                    Message = $"Erreur dans le job '{job.Name}': {ex.Message}"
+                });
             } finally {
                 semaphore.Release();
             }
