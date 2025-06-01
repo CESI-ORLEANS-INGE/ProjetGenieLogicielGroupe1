@@ -11,20 +11,13 @@ if not exist "*.sln" (
 
 @rem Compile the project
 @rem Windows 64-bit
-dotnet publish -c Release -r win-x64 --self-contained true -o ./publish/easysave-win-x64
-
-@REM @rem Linux 64-bit
-@REM dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish/easysave-linux-x64
-
-@REM @rem macOS 64-bit
-@REM dotnet publish -c Release -r osx-x64 --self-contained true -o ./publish/easysave-osx-x64
+dotnet publish EasySave/EasySave.csproj -c Release -r win-x64 --self-contained true -o ./publish/easysave-win-x64
+dotnet publish CryptoSoft/CryptoSoft.csproj -c Release -r win-x64 --self-contained true -o ./publish/easysave-win-x64/CryptoSoft
+dotnet publish CryptoSoft/CryptoSoft.csproj -c Release -r win-x64 --self-contained true -o ./publish/cryptosoft-win-x64
+dotnet publish EasyRemote/EasyRemote.csproj -c Release -r win-x64 --self-contained true -o ./publish/easyremote-win-x64
 
 @rem Create the zip files
 @rem Windows 64-bit
 powershell -Command "Compress-Archive -Path ./publish/easysave-win-x64/* -DestinationPath ./publish/easysave-win-x64.zip"
-
-@REM @rem Linux 64-bit
-@REM powershell -Command "Compress-Archive -Path ./publish/easysave-linux-x64/* -DestinationPath ./publish/easysave-linux-x64.zip"
-
-@REM @rem macOS 64-bit
-@REM powershell -Command "Compress-Archive -Path ./publish/easysave-osx-x64/* -DestinationPath ./publish/easysave-osx-x64.zip"
+powershell -Command "Compress-Archive -Path ./publish/cryptosoft-win-x64/* -DestinationPath ./publish/cryptosoft-win-x64.zip"
+powershell -Command "Compress-Archive -Path ./publish/easyremote-win-x64/* -DestinationPath ./publish/easyremote-win-x64.zip"
