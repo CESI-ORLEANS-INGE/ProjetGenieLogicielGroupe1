@@ -26,8 +26,8 @@ public class SocketCommand : Command {
 }
 
 public class SocketServer {
-    private const int PORT = 8080;
-    private const string HOST = "127.0.0.1";
+    private readonly int PORT = 8080;
+    private readonly IPAddress HOST = IPAddress.Any;
 
     private readonly IViewModel _ViewModel;
 
@@ -86,7 +86,7 @@ public class SocketServer {
     }
 
     private void _StartServer() {
-        IPEndPoint iPEndPoint = new(IPAddress.Parse(HOST), PORT);
+        IPEndPoint iPEndPoint = new(HOST, PORT);
         this._Socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         this._Socket.Bind(iPEndPoint);

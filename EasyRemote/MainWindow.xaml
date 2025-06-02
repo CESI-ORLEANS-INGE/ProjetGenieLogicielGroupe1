@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
         xmlns:easyremote="clr-namespace:EasyRemote"
         mc:Ignorable="av" 
-        Title="EasySave" Height="500" MinHeight="400" Width="900" MinWidth="700" 
+        Title="EasySave - EasyRemote" Height="500" MinHeight="400" Width="900" MinWidth="700" 
 >
     <Grid x:Name="MainGrid">
         <Grid.ColumnDefinitions>

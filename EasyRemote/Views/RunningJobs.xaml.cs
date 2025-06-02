@@ -19,6 +19,15 @@ namespace EasyRemote.Views {
             InitializeComponent();
             this.MainGrid.DataContext = viewModel.ClientControler;
 
+            Task.Run(() => {
+                while (true) {
+                    Application.Current.Dispatcher.Invoke(() => {
+                        RunningJobsList.Items.Refresh();
+                    });
+                    System.Threading.Thread.Sleep(500); // Rafraîchit toutes les secondes
+                }
+            });
+
         }
 
         private void CancelAllButton_Click(object sender, RoutedEventArgs e) {

@@ -16,7 +16,7 @@ using System.Windows;
 namespace EasyRemote.Model {
     public interface IClientControler : INotifyPropertyChanged {
         public ObservableCollection<IBackupJob> BackupJob { get; }
-        public ObservableCollection<IBackupJobState> RunningJobList { get; }
+        public List<IBackupJobState> RunningJobList { get; }
         public Socket ConfigureServer(string ipAddress, int port);
         public void ConnectToServer(Socket socket);
         public void DisconnectToServer(Socket socket);
@@ -36,7 +36,7 @@ namespace EasyRemote.Model {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         public ObservableCollection<IBackupJob> BackupJob { get; set; } = [];
-        public ObservableCollection<IBackupJobState> RunningJobList { get; } = [];
+        public List<IBackupJobState> RunningJobList { get; } = [];
         private static ClientController _instance;
         private static readonly object _lock = new();
 
